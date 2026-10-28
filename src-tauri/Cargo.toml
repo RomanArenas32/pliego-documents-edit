@@ -5,7 +5,7 @@ description = "Editor de PDF gratuito y de código abierto"
 authors = ["Roman Emiliano Arenas"]
 license = "GPL-3.0-or-later"
 publish = false
-repository = "https://github.com/RomanArenas32/pliego"
+repository = "https://github.com/RomanArenas32/pliego-documents-edit"
 edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

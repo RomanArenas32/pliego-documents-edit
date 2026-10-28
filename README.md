@@ -6,8 +6,8 @@
 Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
 
 <p align="center">
-  <a href="https://romanarenas32.github.io/pliego/"><b>Sitio web</b></a> ·
-  <a href="https://github.com/RomanArenas32/pliego/releases/latest"><b>Descargar</b></a>
+  <a href="https://romanarenas32.github.io/pliego-documents-edit/"><b>Sitio web</b></a> ·
+  <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases/latest"><b>Descargar</b></a>
 </p>
 
 ![Pliego](docs/captura.png)
@@ -43,7 +43,7 @@ Tecnologías: [Tauri 2](https://tauri.app), Rust, TypeScript y [PDFium](https://
 1. Subir el número de versión en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
 2. Crear y subir la etiqueta: `git tag v0.2.0 && git push --tags`.
 3. GitHub Actions compila los instaladores y los publica en
-   [Releases](https://github.com/RomanArenas32/pliego/releases). Los botones de la web
+   [Releases](https://github.com/RomanArenas32/pliego-documents-edit/releases). Los botones de la web
    apuntan siempre a la última versión.
 
 Si cambian las dependencias, regenerar los avisos de licencias de terceros con
