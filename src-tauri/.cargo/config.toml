@@ -1,0 +1,4 @@
+# Tests use pdfium directly and pdfium doesn't tolerate two threads at once
+# (it crashes with SIGSEGV intermittently). With one thread they take under a second.
+[env]
+RUST_TEST_THREADS = "1"

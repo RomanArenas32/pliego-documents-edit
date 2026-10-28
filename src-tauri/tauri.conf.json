@@ -1,0 +1,63 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Pliego",
+  "version": "0.1.0",
+  "identifier": "com.romanarenas.pliego",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Pliego",
+        "width": 1200,
+        "height": 800,
+        "minWidth": 720,
+        "minHeight": 480
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "fileAssociations": [
+      {
+        "ext": [
+          "pdf"
+        ],
+        "name": "Documento PDF",
+        "description": "Documento PDF",
+        "mimeType": "application/pdf",
+        "role": "Editor",
+        "rank": "Alternate"
+      }
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "publisher": "Roman Emiliano Arenas",
+    "copyright": "© 2026 Roman Emiliano Arenas. Licencia GPL-3.0.",
+    "homepage": "https://romanarenas32.github.io/pliego/",
+    "category": "Productivity",
+    "shortDescription": "Editor de PDF gratuito y de código abierto",
+    "longDescription": "Edita, firma, rellena, combina y protege PDFs sin conexión. Tus archivos nunca salen de tu computadora.",
+    "license": "GPL-3.0-or-later",
+    "licenseFile": "../LICENSE",
+    "resources": {
+      "../LICENSE": "LICENSE.txt",
+      "../THIRD_PARTY_NOTICES.txt": "THIRD_PARTY_NOTICES.txt"
+    }
+  }
+}

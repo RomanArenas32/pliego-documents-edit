@@ -1,0 +1,13 @@
+Licencias de las librerías de Rust incluidas en Pliego
+==========================================================
+{{#each licenses}}
+
+--------------------------------------------------------------------------------
+{{{name}}}
+
+Usada por:
+{{#each used_by}}  - {{crate.name}} {{crate.version}}
+{{/each}}
+
+{{{text}}}
+{{/each}}

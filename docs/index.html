@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pliego — Editor de PDF gratuito</title>
+  <meta name="description" content="Edita, firma, rellena, combina y protege PDFs gratis y sin conexión. Tus archivos nunca salen de tu computadora. Para Windows y macOS.">
+  <meta property="og:title" content="Pliego — Editor de PDF gratuito">
+  <meta property="og:description" content="Edita, firma, rellena y protege PDFs sin conexión. Gratis y de código abierto.">
+  <meta property="og:image" content="captura.png">
+  <link rel="icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #5b6577;
+      --border: #e2e6ee;
+      --accent: #2f6fe4;
+      --accent-text: #ffffff;
+      --accent-soft: #e8f0fd;
+      --shadow: 0 20px 50px -20px rgba(16, 32, 72, 0.35);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #11141a;
+        --surface: #191d25;
+        --text: #e8ebf1;
+        --muted: #9aa3b3;
+        --border: #2a303b;
+        --accent: #5b92f5;
+        --accent-text: #0b1220;
+        --accent-soft: #1c2840;
+        --shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #11141a;
+      --surface: #191d25;
+      --text: #e8ebf1;
+      --muted: #9aa3b3;
+      --border: #2a303b;
+      --accent: #5b92f5;
+      --accent-text: #0b1220;
+      --accent-soft: #1c2840;
+      --shadow: 0 20px 50px -20px rgba(0, 0, 0, 0.7);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    a { color: var(--accent); }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+    header.top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 0;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    .brand img { width: 34px; height: 34px; }
+    nav a { color: var(--muted); text-decoration: none; margin-left: 20px; font-size: 15px; }
+    nav a:hover { color: var(--text); }
+
+    .hero { text-align: center; padding: 56px 0 32px; }
+    .hero h1 { font-size: clamp(32px, 6vw, 54px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.02em; }
+    .hero p.lead { font-size: clamp(17px, 2.4vw, 20px); color: var(--muted); max-width: 640px; margin: 0 auto 30px; }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 28px; }
+    .badge { background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 600; }
+
+    .downloads { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
+    .btn {
+      display: inline-flex; flex-direction: column; align-items: center;
+      padding: 12px 26px; border-radius: 12px; text-decoration: none; font-weight: 700;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      min-width: 220px;
+    }
+    .btn small { font-weight: 400; font-size: 13px; color: var(--muted); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+    .btn.primary small { color: var(--accent-text); opacity: 0.85; }
+    .btn:hover { filter: brightness(1.05); }
+    .note { color: var(--muted); font-size: 14px; margin-top: 14px; }
+
+    .shot { margin: 44px auto 0; max-width: 1000px; }
+    .shot img { width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: var(--shadow); display: block; }
+
+    section { padding: 64px 0 8px; }
+    section h2 { font-size: clamp(26px, 4vw, 34px); margin: 0 0 8px; letter-spacing: -0.01em; }
+    section > .wrap > p.sub { color: var(--muted); margin: 0 0 28px; max-width: 680px; }
+
+    .privacy {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 16px;
+      padding: 28px; display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+    .privacy h3 { margin: 0 0 4px; font-size: 17px; }
+    .privacy p { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .card h3 { margin: 0 0 6px; font-size: 17px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .card .tag { display: inline-block; font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; }
+
+    .steps { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+    .steps ol { margin: 8px 0 0; padding-left: 20px; color: var(--muted); }
+    .steps li { margin-bottom: 6px; }
+    .steps li strong { color: var(--text); }
+
+    details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 600; }
+    details p { color: var(--muted); margin: 10px 0 2px; }
+
+    footer { padding: 56px 0 40px; color: var(--muted); font-size: 14px; text-align: center; }
+    footer a { color: var(--muted); }
+
+    @media (max-width: 600px) {
+      nav { display: none; }
+      .hero { padding-top: 28px; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <a class="brand" href="#"><img src="icon.png" alt="">Pliego</a>
+      <nav>
+        <a href="#funciones">Funciones</a>
+        <a href="#instalar">Instalar</a>
+        <a href="#preguntas">Preguntas</a>
+        <a href="https://github.com/RomanArenas32/pliego">GitHub</a>
+      </nav>
+    </header>
+
+    <div class="hero">
+      <h1>Edita tus PDF.<br>Sin subirlos a ningún lado.</h1>
+      <p class="lead">Un editor de PDF completo, gratis y de código abierto. Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
+      <div class="badges">
+        <span class="badge">Gratis</span>
+        <span class="badge">Sin publicidad</span>
+        <span class="badge">Sin cuenta</span>
+        <span class="badge">Código abierto (GPL-3.0)</span>
+      </div>
+      <div class="downloads">
+        <a class="btn" id="dl-windows" href="https://github.com/RomanArenas32/pliego/releases/latest/download/Pliego-Windows.exe">
+          Descargar para Windows<small>Windows 10 y 11 · 64 bits</small>
+        </a>
+        <a class="btn" id="dl-mac" href="https://github.com/RomanArenas32/pliego/releases/latest/download/Pliego-macOS.dmg">
+          Descargar para macOS<small>Apple Silicon e Intel</small>
+        </a>
+      </div>
+      <p class="note">¿Primera vez? Mira <a href="#instalar">cómo instalarlo</a>. Todas las versiones están en <a href="https://github.com/RomanArenas32/pliego/releases">GitHub</a>.</p>
+    </div>
+
+    <div class="shot">
+      <img src="captura.png" alt="Pliego con una propuesta abierta y una frase resaltada en amarillo" width="1600" height="1000">
+    </div>
+  </div>
+
+  <section>
+    <div class="wrap">
+      <div class="privacy">
+        <div>
+          <h3>Tus archivos se quedan contigo</h3>
+          <p>Las páginas web de PDF suben tus documentos a sus servidores. Pliego los procesa en tu computadora.</p>
+        </div>
+        <div>
+          <h3>Funciona sin internet</h3>
+          <p>En un avión, en la oficina sin red o con datos privados: no necesita conexión.</p>
+        </div>
+        <div>
+          <h3>Sin límites ni marcas de agua</h3>
+          <p>Sin cantidad máxima de archivos, sin suscripción y sin sellos en tus documentos.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="funciones">
+    <div class="wrap">
+      <h2>Todo lo que necesitas</h2>
+      <p class="sub">Las herramientas de los editores de pago, en una app liviana.</p>
+      <div class="grid">
+        <div class="card"><span class="tag">Editar</span><h3>Corrige el texto original</h3><p>Cambia palabras del PDF manteniendo la fuente, el tamaño y el color. Agrega texto nuevo donde quieras.</p></div>
+        <div class="card"><span class="tag">Firmar</span><h3>Firma y agrega imágenes</h3><p>Dibuja tu firma o usa una imagen, y colócala en cualquier página.</p></div>
+        <div class="card"><span class="tag">Formularios</span><h3>Rellena formularios</h3><p>Campos de texto, casillas y listas, que se ven igual en cualquier otro lector.</p></div>
+        <div class="card"><span class="tag">Revisar</span><h3>Resalta, subraya y comenta</h3><p>Resaltado, subrayado, tachado, notas adhesivas, rectángulos y lápiz libre.</p></div>
+        <div class="card"><span class="tag">Privacidad</span><h3>Oculta datos de verdad</h3><p>Lo que tapas se borra del archivo, no solo se cubre. Busca un dato y ocúltalo en todas las páginas.</p></div>
+        <div class="card"><span class="tag">Páginas</span><h3>Organiza tus documentos</h3><p>Une PDFs, rota, elimina, extrae y divide páginas. Agrega páginas en blanco.</p></div>
+        <div class="card"><span class="tag">Convertir</span><h3>Exporta e importa</h3><p>Exporta a Word o a imágenes, y crea un PDF a partir de fotos.</p></div>
+        <div class="card"><span class="tag">Proteger</span><h3>Contraseña y compresión</h3><p>Protege con cifrado AES-256 y reduce el tamaño de PDFs pesados.</p></div>
+        <div class="card"><span class="tag">En serie</span><h3>Genera cientos de documentos</h3><p>Certificados, constancias o etiquetas desde una planilla de Excel o CSV, con códigos QR incluidos.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <div class="wrap">
+      <h2>Cómo instalarlo</h2>
+      <p class="sub">Como es un proyecto gratuito, todavía no tiene certificado de firma pago. Por eso tu sistema muestra un aviso la primera vez. Es normal y pasa una sola vez.</p>
+      <div class="steps">
+        <div class="card">
+          <h3>Windows</h3>
+          <ol>
+            <li>Descarga <strong>Pliego-Windows.exe</strong> y ábrelo.</li>
+            <li>Si aparece «Windows protegió su PC», haz clic en <strong>Más información</strong> y luego en <strong>Ejecutar de todas formas</strong>.</li>
+            <li>Sigue el instalador. Pliego queda en el menú Inicio.</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>macOS</h3>
+          <ol>
+            <li>Descarga <strong>Pliego-macOS.dmg</strong>, ábrelo y arrastra Pliego a <strong>Aplicaciones</strong>.</li>
+            <li>Abre la app. Si macOS dice que no puede verificarla, haz clic en <strong>Aceptar</strong>.</li>
+            <li>Ve a <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, baja hasta el final y haz clic en <strong>Abrir igualmente</strong>.</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="preguntas">
+    <div class="wrap">
+      <h2>Preguntas frecuentes</h2>
+      <details>
+        <summary>¿Es realmente gratis?</summary>
+        <p>Sí. Todas sus funciones son gratis, sin suscripción, publicidad ni marcas de agua. El código es abierto bajo la licencia GPL-3.0.</p>
+      </details>
+      <details>
+        <summary>¿Mis documentos se suben a internet?</summary>
+        <p>No. Todo se procesa en tu computadora. La app no envía tus archivos a ningún servidor.</p>
+      </details>
+      <details>
+        <summary>¿Por qué mi sistema dice que la app no es de confianza?</summary>
+        <p>Windows y macOS muestran ese aviso con las apps que no tienen un certificado de firma, que cuesta dinero cada año. El código está publicado en GitHub para que cualquiera pueda revisarlo.</p>
+      </details>
+      <details>
+        <summary>¿Puedo abrir PDFs escaneados?</summary>
+        <p>Sí, puedes verlos, anotarlos, firmarlos y organizarlos. Lo que todavía no puede hacer es reconocer el texto de una imagen escaneada (OCR).</p>
+      </details>
+      <details>
+        <summary>¿Puedo abrir un PDF con doble clic?</summary>
+        <p>Sí. Haz clic derecho en un PDF, elige «Abrir con» y selecciona Pliego. Puedes marcarlo como app predeterminada.</p>
+      </details>
+      <details>
+        <summary>Encontré un error o tengo una idea, ¿dónde lo cuento?</summary>
+        <p>En la sección <a href="https://github.com/RomanArenas32/pliego/issues">Issues de GitHub</a>. Si sabes programar, también puedes proponer cambios.</p>
+      </details>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap">
+      Pliego · Hecho por Roman Emiliano Arenas · Licencia <a href="https://github.com/RomanArenas32/pliego/blob/main/LICENSE">GPL-3.0</a> ·
+      <a href="https://github.com/RomanArenas32/pliego">Código fuente</a>
+    </div>
+  </footer>
+
+  <script>
+    // Highlights the download for the visitor's system.
+    const ua = navigator.userAgent;
+    const id = /Mac/.test(ua) ? "dl-mac" : /Windows/.test(ua) ? "dl-windows" : null;
+    if (id) {
+      const btn = document.getElementById(id);
+      btn.classList.add("primary");
+      btn.parentElement.prepend(btn);
+    }
+  </script>
+</body>
+</html>

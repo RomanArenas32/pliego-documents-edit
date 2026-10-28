@@ -1,0 +1,107 @@
+# Builds the Windows and macOS installers on GitHub's servers.
+# Runs manually (Actions tab → "Compilar instaladores" → Run workflow)
+# or when pushing a version tag, for example: git tag v0.1.0 && git push --tags
+# With a tag, it also publishes the installers on the Releases page, with fixed
+# names so the website's download links always point to the latest version.
+name: Compilar instaladores
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+# pdfium version; must match the one pdfium-render expects (feature pdfium_7881).
+env:
+  PDFIUM_RELEASE: chromium%2F7881
+
+# Needed to create the release in Releases.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: windows
+            runner: windows-latest
+            pdfium: pdfium-win-x64.tgz
+            library: bin/pdfium.dll
+            args: --bundles nsis,msi
+            installers: |
+              src-tauri/target/release/bundle/nsis/*.exe
+              src-tauri/target/release/bundle/msi/*.msi
+            # Fixed installer name in Releases (the website links use it).
+            release: src-tauri/target/release/bundle/nsis/*.exe
+            release_name: Pliego-Windows.exe
+          - name: macos
+            runner: macos-latest
+            # Universal binary: works on Apple Silicon and Intel.
+            pdfium: pdfium-mac-univ.tgz
+            library: lib/libpdfium.dylib
+            args: --target universal-apple-darwin --bundles dmg
+            installers: |
+              src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            release: src-tauri/target/universal-apple-darwin/release/bundle/dmg/*.dmg
+            release_name: Pliego-macOS.dmg
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Uses the pnpm version set in "packageManager" in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.name == 'macos' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Descargar pdfium
+        shell: bash
+        # Relative paths: Windows tar mistakes "D:\..." for a remote server.
+        run: |
+          mkdir -p pdfium-download src-tauri/pdfium
+          curl -fsSL -o pdfium-download/pdfium.tgz \
+            "https://github.com/bblanchon/pdfium-binaries/releases/download/${PDFIUM_RELEASE}/${{ matrix.pdfium }}"
+          tar xzf pdfium-download/pdfium.tgz -C pdfium-download
+          cp "pdfium-download/${{ matrix.library }}" src-tauri/pdfium/
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Tests
+        working-directory: src-tauri
+        run: cargo test
+
+      - name: Compilar
+        run: pnpm tauri build ${{ matrix.args }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pliego-${{ matrix.name }}
+          path: ${{ matrix.installers }}
+          if-no-files-found: error
+
+      - name: Preparar instalador para Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: |
+          mkdir -p release
+          cp ${{ matrix.release }} "release/${{ matrix.release_name }}"
+
+      - name: Publicar en Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true

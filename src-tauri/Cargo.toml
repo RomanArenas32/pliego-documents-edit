@@ -1,0 +1,64 @@
+[package]
+name = "pliego"
+version = "0.1.0"
+description = "Editor de PDF gratuito y de código abierto"
+authors = ["Roman Emiliano Arenas"]
+license = "GPL-3.0-or-later"
+publish = false
+repository = "https://github.com/RomanArenas32/pliego"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "pliego_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri-plugin-dialog = "2"
+pdfium-render = "0.9.4"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp", "gif", "bmp"] }
+tokio = { version = "1.54.0", features = ["sync"] }
+csv = "1.4.0"
+encoding_rs = "0.8.42"
+calamine = { version = "0.37.0", features = ["dates"] }
+libloading = "0.7.4"
+lopdf = { version = "0.46", default-features = false }
+getrandom = "0.4"
+zip = { version = "9", default-features = false, features = ["deflate"] }
+tiny_http = { version = "0.12.0", optional = true }
+ttf-parser = "0.25"
+qrcode = { version = "0.14", default-features = false }
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = "2"
+
+[features]
+# Development test bench: serves the UI over HTTP to test it in a browser.
+# cargo run --example bridge --features bridge
+bridge = ["dep:tiny_http"]
+
+[[example]]
+name = "bridge"
+required-features = ["bridge"]
+
+
+# Read the optimization guideline for more details: https://tauri.app/concept/size/#cargo-configuration
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = 3
+panic = "abort"
+strip = true
+
+[dev-dependencies]
+rqrr = "0.10"

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pliego</title>
+    <script type="module" src="/src/main.ts" defer></script>
+  </head>
+
+  <body>
+    <header class="toolbar">
+      <div class="row">
+        <div class="group">
+          <button id="btn-open" title="Abrir (⌘O)">Abrir</button>
+          <button id="btn-save" title="Guardar (⌘S)" disabled>Guardar</button>
+          <button id="btn-save-as" title="Guardar como (⇧⌘S)" disabled>Guardar como…</button>
+          <button id="btn-batch" title="Generar muchas copias cambiando textos con los datos de un Excel o CSV" disabled>Generar en serie…</button>
+          <button id="btn-tools" title="Imprimir, extraer, dividir, exportar, reducir, proteger…" aria-haspopup="menu" aria-expanded="false">Herramientas ▾</button>
+        </div>
+        <div class="group">
+          <button id="btn-search" class="icon" title="Buscar (⌘F)" disabled>⌕</button>
+        </div>
+        <div class="group">
+          <button id="btn-undo" class="icon" title="Deshacer (⌘Z)" disabled>↶</button>
+          <button id="btn-redo" class="icon" title="Rehacer (⇧⌘Z)" disabled>↷</button>
+        </div>
+        <div class="group">
+          <button id="btn-prev" class="icon" title="Página anterior (←)" disabled>‹</button>
+          <span id="page-indicator" class="indicator">–</span>
+          <button id="btn-next" class="icon" title="Página siguiente (→)" disabled>›</button>
+        </div>
+        <div class="group">
+          <button id="btn-zoom-out" class="icon" title="Alejar (⌘−)" disabled>−</button>
+          <span id="zoom-indicator" class="indicator">100%</span>
+          <button id="btn-zoom-in" class="icon" title="Acercar (⌘+)" disabled>+</button>
+        </div>
+        <span id="file-name" class="file-name"></span>
+      </div>
+
+      <div class="row">
+        <div class="group segmented" id="tools" role="toolbar" aria-label="Herramientas">
+          <button data-tool="select" title="Seleccionar: clic para elegir (y cambiar su color), arrastrar para mover, doble clic para editar, Supr para borrar. Funciona con tu texto y con el texto original del PDF (V)" aria-pressed="true" disabled>Seleccionar</button>
+          <button data-tool="text" title="Agregar o editar texto propio (T)" disabled>Texto</button>
+          <button data-tool="edit-text" title="Texto original del PDF (experimental): clic para editar, arrastrar para mover (X)" disabled>Editar texto del PDF</button>
+          <button data-tool="highlight" title="Resaltar un área (H). Para resaltar, subrayar o tachar texto: selecciónalo con Seleccionar" disabled>Resaltar</button>
+          <button data-tool="rect" title="Rectángulo (R)" disabled>Rectángulo</button>
+          <button data-tool="pen" title="Lápiz (P)" disabled>Lápiz</button>
+          <button data-tool="note" title="Nota adhesiva: clic donde quieras dejar un comentario (N)" disabled>Nota</button>
+          <button data-tool="redact" title="Ocultar: dibuja un recuadro sobre lo que quieras borrar del PDF de verdad (datos personales, montos…) (O)" disabled>Ocultar</button>
+          <button data-tool="eraser" title="Borrar anotación (E)" disabled>Borrador</button>
+        </div>
+        <div class="group">
+          <button id="btn-sign" title="Firmar: dibuja, escribe o sube tu firma y colócala en la página" disabled>Firmar…</button>
+          <button id="btn-image" title="Insertar una imagen (PNG, JPG…)" disabled>Imagen…</button>
+        </div>
+        <div class="group" id="tool-options" hidden>
+          <label class="option" title="Color">
+            <input id="opt-color" type="color" value="#000000" />
+          </label>
+          <label class="option" id="opt-size-wrap">
+            Tamaño
+            <select id="opt-size">
+              <option>8</option>
+              <option>10</option>
+              <option>12</option>
+              <option selected>14</option>
+              <option>18</option>
+              <option>24</option>
+              <option>36</option>
+              <option>48</option>
+              <option>72</option>
+            </select>
+          </label>
+          <label class="option" id="opt-width-wrap">
+            Grosor
+            <input id="opt-width" type="range" min="0.5" max="12" step="0.5" value="2" />
+          </label>
+        </div>
+        <div class="group pages-group">
+          <button id="btn-rotate-left" class="icon" title="Girar a la izquierda" disabled>⟲</button>
+          <button id="btn-rotate-right" class="icon" title="Girar a la derecha" disabled>⟳</button>
+          <button id="btn-blank" title="Insertar página en blanco después de la actual" disabled>Página en blanco</button>
+          <button id="btn-insert" title="Insertar otro PDF después de la página actual" disabled>Insertar PDF…</button>
+          <button id="btn-delete" class="danger" title="Eliminar página" disabled>Eliminar página</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside id="thumbnails" class="thumbnails" aria-label="Páginas"></aside>
+      <div id="search-bar" class="search-bar" hidden>
+        <input id="search-input" type="search" placeholder="Buscar en el documento" spellcheck="false" />
+        <span id="search-count" class="indicator"></span>
+        <button id="search-prev" class="icon" title="Anterior (⇧Enter)">↑</button>
+        <button id="search-next" class="icon" title="Siguiente (Enter)">↓</button>
+        <button id="search-redact" disabled title="Borrar del PDF todas las coincidencias y taparlas con negro">Ocultar todas</button>
+        <button id="search-close" class="icon" title="Cerrar (Esc)">×</button>
+      </div>
+      <main id="viewer" class="viewer">
+        <div id="empty" class="empty">
+          <p>Abre un PDF o arrástralo aquí</p>
+          <button id="btn-open-empty">Abrir PDF…</button>
+        </div>
+        <div id="pages" class="pages" data-tool="select" hidden></div>
+      </main>
+
+      <aside id="batch-panel" class="batch-panel" aria-label="Generar en serie" hidden>
+        <header>
+          <h2>Generar en serie</h2>
+          <button id="batch-close" class="icon" title="Cerrar (Esc)">×</button>
+        </header>
+
+        <section>
+          <h3>1. Campos</h3>
+          <p class="hint">Haz clic en el texto que cambia en cada copia, por ejemplo el nombre. Vuelve a hacer clic para quitarlo. Para un código QR (enlace, número de serie…), arrastra un recuadro donde debe ir.</p>
+          <ol id="batch-fields" class="batch-fields"></ol>
+        </section>
+
+        <section>
+          <h3>2. Datos</h3>
+          <button id="batch-load">Cargar Excel o CSV…</button>
+          <p id="batch-table-info" class="hint">La primera fila debe tener los nombres de las columnas.</p>
+          <div id="batch-preview-nav" class="preview-nav" hidden>
+            <button id="batch-prev" class="icon" title="Fila anterior">‹</button>
+            <span id="batch-row-label"></span>
+            <button id="batch-next" class="icon" title="Fila siguiente">›</button>
+          </div>
+        </section>
+
+        <section>
+          <h3>3. Salida</h3>
+          <label class="radio"><input type="radio" name="batch-mode" value="files" checked /> Un PDF por fila</label>
+          <label class="pattern">
+            Nombre de cada archivo
+            <input id="batch-pattern" type="text" spellcheck="false" placeholder="{Nombre}" />
+          </label>
+          <label class="radio"><input type="radio" name="batch-mode" value="single" /> Un solo PDF con todas las páginas</label>
+          <button id="batch-run" class="primary" disabled>Generar</button>
+          <div id="batch-progress" class="progress" hidden>
+            <progress id="batch-progress-bar" value="0" max="1"></progress>
+            <span id="batch-progress-label"></span>
+            <button id="batch-cancel">Cancelar</button>
+          </div>
+          <p id="batch-result" class="hint"></p>
+        </section>
+      </aside>
+    </div>
+
+    <dialog id="sign-dialog" class="dialog">
+      <form method="dialog" class="dialog-body">
+        <header>
+          <h2>Firmar</h2>
+          <button value="cancel" class="icon" title="Cerrar">×</button>
+        </header>
+
+        <section id="sign-saved-section">
+          <h3>Tus firmas</h3>
+          <p class="hint">Haz clic en una para colocarla en la página.</p>
+          <div id="sign-saved" class="sign-saved"></div>
+        </section>
+
+        <section>
+          <h3>Nueva firma</h3>
+          <div class="group segmented" id="sign-tabs" role="tablist">
+            <button type="button" data-tab="draw" aria-pressed="true">Dibujar</button>
+            <button type="button" data-tab="type" aria-pressed="false">Escribir</button>
+            <button type="button" data-tab="file" aria-pressed="false">Imagen</button>
+          </div>
+
+          <div data-panel="draw" class="sign-panel">
+            <canvas id="sign-canvas" class="sign-canvas" width="900" height="300"></canvas>
+            <div class="sign-row">
+              <label class="option">Color
+                <select id="sign-ink">
+                  <option value="#111111">Negro</option>
+                  <option value="#1d3fbb">Azul</option>
+                </select>
+              </label>
+              <button type="button" id="sign-clear">Borrar</button>
+            </div>
+          </div>
+
+          <div data-panel="type" class="sign-panel" hidden>
+            <input id="sign-name" type="text" placeholder="Tu nombre" spellcheck="false" />
+            <select id="sign-font"></select>
+            <canvas id="sign-typed" class="sign-canvas" width="900" height="300"></canvas>
+          </div>
+
+          <div data-panel="file" class="sign-panel" hidden>
+            <p class="hint">Una foto o escaneo de tu firma. Si tiene fondo blanco, se vuelve transparente.</p>
+            <button type="button" id="sign-pick">Elegir imagen…</button>
+            <canvas id="sign-uploaded" class="sign-canvas" width="900" height="300"></canvas>
+          </div>
+
+          <div class="sign-row end">
+            <label class="radio"><input type="checkbox" id="sign-remember" checked /> Guardar para la próxima vez</label>
+            <button type="button" id="sign-use" class="primary" disabled>Usar firma</button>
+          </div>
+        </section>
+      </form>
+    </dialog>
+
+    <div id="tools-menu" class="menu" role="menu" hidden></div>
+
+    <dialog id="tool-dialog" class="dialog narrow">
+      <form method="dialog" class="dialog-body">
+        <header>
+          <h2 id="tool-title"></h2>
+          <button value="cancel" class="icon" title="Cerrar">×</button>
+        </header>
+        <div id="tool-fields" class="tool-fields"></div>
+        <p id="tool-error" class="tool-error" hidden></p>
+        <div class="sign-row end">
+          <button value="cancel">Cancelar</button>
+          <button type="button" id="tool-ok" class="primary"></button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" hidden></div>
+  </body>
+</html>

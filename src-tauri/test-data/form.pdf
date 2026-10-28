@@ -1,0 +1,98 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm 20 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 400 600] /Contents 4 0 R /Resources << /Font << /Helv 5 0 R >> >> /Annots [10 0 R 11 0 R 13 0 R 14 0 R 15 0 R] >>
+endobj
+4 0 obj
+<<  /Length 53 >>
+stream
+BT /Helv 12 Tf 50 560 Td (Formulario de prueba) Tj ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+10 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Tx /T (nombre) /Rect [50 500 300 520] /P 3 0 R /DA (/Helv 12 Tf 0 g) /F 4 /MK << /BG [0.9 0.9 1] >> >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (acepto) /Rect [50 460 64 474] /P 3 0 R /F 4 /V /Off /AS /Off /MK << /CA (4) >> /DA (/ZaDb 0 Tf 0 g) /AP << /N << /Yes 30 0 R /Off 31 0 R >> >> >>
+endobj
+12 0 obj
+<< /FT /Btn /Ff 49152 /T (plan) /V /Off /Kids [13 0 R 14 0 R] >>
+endobj
+13 0 obj
+<< /Type /Annot /Subtype /Widget /Parent 12 0 R /Rect [50 420 64 434] /P 3 0 R /F 4 /AS /Off /AP << /N << /Basico 32 0 R /Off 31 0 R >> >> >>
+endobj
+14 0 obj
+<< /Type /Annot /Subtype /Widget /Parent 12 0 R /Rect [100 420 114 434] /P 3 0 R /F 4 /AS /Off /AP << /N << /Pro 32 0 R /Off 31 0 R >> >> >>
+endobj
+15 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Ch /Ff 131072 /T (pais) /Rect [50 370 250 390] /P 3 0 R /F 4 /Opt [(Argentina) (Chile) (México) (Perú)] /DA (/Helv 12 Tf 0 g) >>
+endobj
+20 0 obj
+<< /Fields [10 0 R 11 0 R 12 0 R 15 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 5 0 R >> >> >>
+endobj
+30 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 14 14] /Length 27 >>
+stream
+q 0 0 0 rg 2 2 10 10 re f Q
+endstream
+endobj
+31 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 14 14] /Length 0 >>
+stream
+
+endstream
+endobj
+32 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 14 14] /Length 25 >>
+stream
+q 0 0 0 rg 4 4 6 6 re f Q
+endstream
+endobj
+xref
+0 33
+0000000000 65535 f 
+0000000009 00000 n 
+0000000075 00000 n 
+0000000132 00000 n 
+0000000305 00000 n 
+0000000409 00000 n 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000506 00000 n 
+0000000663 00000 n 
+0000000871 00000 n 
+0000000952 00000 n 
+0000001110 00000 n 
+0000001267 00000 n 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000001450 00000 n 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000000000 65535 f 
+0000001565 00000 n 
+0000001691 00000 n 
+0000001789 00000 n 
+trailer
+<< /Size 33 /Root 1 0 R >>
+startxref
+1913
+%%EOF
