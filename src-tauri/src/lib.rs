@@ -139,8 +139,11 @@ mod tests {
 
     #[test]
     fn pdf_paths_from_arguments() {
-        let args = ["pliego", "-psn_0_123", "factura.pdf", "/abs/otro.PDF"].map(String::from);
-        let paths = pdf_args(args, Some(std::path::Path::new("/home/ana")));
-        assert_eq!(paths, ["/home/ana/factura.pdf", "/abs/otro.PDF"]);
+        // Absolute paths for the current system ("C:\..." on Windows, "/..." elsewhere).
+        let cwd = std::env::temp_dir().join("ana");
+        let absolute = std::env::temp_dir().join("otro.PDF").to_string_lossy().into_owned();
+        let args = ["pliego".into(), "-psn_0_123".into(), "factura.pdf".into(), absolute.clone()];
+        let paths = pdf_args(args, Some(&cwd));
+        assert_eq!(paths, [cwd.join("factura.pdf").to_string_lossy().into_owned(), absolute]);
     }
 }

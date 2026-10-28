@@ -5,7 +5,8 @@
       "pdfium/libpdfium.dylib": "pdfium/libpdfium.dylib"
     },
     "macOS": {
-      "signingIdentity": "-"
+      "signingIdentity": "-",
+      "hardenedRuntime": false
     }
   }
 }
