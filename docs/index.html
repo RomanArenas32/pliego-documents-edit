@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Pliego — Editor de PDF gratuito</title>
-  <meta name="description" content="Edita, firma, rellena, combina y protege PDFs gratis y sin conexión. Tus archivos nunca salen de tu computadora. Para Windows y macOS.">
+  <title data-i18n="title">Pliego — Editor de PDF gratuito</title>
+  <meta name="description" data-i18n-content="description" content="Edita, firma, rellena, combina y protege PDFs gratis y sin conexión. Tus archivos nunca salen de tu computadora. Para Windows y macOS.">
   <meta property="og:title" content="Pliego — Editor de PDF gratuito">
   <meta property="og:description" content="Edita, firma, rellena y protege PDFs sin conexión. Gratis y de código abierto.">
   <meta property="og:image" content="captura.png">
@@ -116,6 +116,16 @@
     footer { padding: 56px 0 40px; color: var(--muted); font-size: 14px; text-align: center; }
     footer a { color: var(--muted); }
 
+    .top-right { display: flex; align-items: center; gap: 4px; }
+    .lang { display: flex; gap: 4px; margin-left: 16px; }
+    .lang button {
+      display: inline-flex; padding: 5px; border-radius: 8px; cursor: pointer;
+      background: none; border: 1px solid transparent; opacity: 0.55;
+    }
+    .lang button:hover { opacity: 1; }
+    .lang button[aria-pressed="true"] { opacity: 1; border-color: var(--border); background: var(--surface); }
+    .lang svg { width: 24px; height: 16px; border-radius: 3px; display: block; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12); }
+
     @media (max-width: 600px) {
       nav { display: none; }
       .hero { padding-top: 28px; }
@@ -127,36 +137,46 @@
   <div class="wrap">
     <header class="top">
       <a class="brand" href="#"><img src="icon.png" alt="">Pliego</a>
-      <nav>
-        <a href="#funciones">Funciones</a>
-        <a href="#instalar">Instalar</a>
-        <a href="#preguntas">Preguntas</a>
-        <a href="https://github.com/RomanArenas32/pliego-documents-edit">GitHub</a>
-      </nav>
+      <div class="top-right">
+        <nav>
+          <a href="#funciones" data-i18n="nav.features">Funciones</a>
+          <a href="#instalar" data-i18n="nav.install">Instalar</a>
+          <a href="#preguntas" data-i18n="nav.faq">Preguntas</a>
+          <a href="https://github.com/RomanArenas32/pliego-documents-edit">GitHub</a>
+        </nav>
+        <div class="lang" role="group" aria-label="Idioma / Language">
+          <button type="button" data-lang="es" title="Español" aria-label="Español">
+            <svg viewBox="0 0 750 500" preserveAspectRatio="xMidYMid slice"><rect width="750" height="500" fill="#c60b1e"/><rect y="125" width="750" height="250" fill="#ffc400"/></svg>
+          </button>
+          <button type="button" data-lang="en" title="English" aria-label="English">
+            <svg viewBox="0 0 60 30" preserveAspectRatio="xMidYMid slice"><clipPath id="uk-t"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#uk-t)" stroke="#c8102e" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#c8102e" stroke-width="6"/></svg>
+          </button>
+        </div>
+      </div>
     </header>
 
     <div class="hero">
-      <h1>Edita tus PDF.<br>Sin subirlos a ningún lado.</h1>
-      <p class="lead">Un editor de PDF completo, gratis y de código abierto. Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
+      <h1 data-i18n="hero.title">Edita tus PDF.<br>Sin subirlos a ningún lado.</h1>
+      <p class="lead" data-i18n="hero.lead">Un editor de PDF completo, gratis y de código abierto. Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
       <div class="badges">
-        <span class="badge">Gratis</span>
-        <span class="badge">Sin publicidad</span>
-        <span class="badge">Sin cuenta</span>
-        <span class="badge">Código abierto (GPL-3.0)</span>
+        <span class="badge" data-i18n="badge.free">Gratis</span>
+        <span class="badge" data-i18n="badge.ads">Sin publicidad</span>
+        <span class="badge" data-i18n="badge.account">Sin cuenta</span>
+        <span class="badge" data-i18n="badge.open">Código abierto (GPL-3.0)</span>
       </div>
       <div class="downloads">
         <a class="btn" id="dl-windows" href="https://github.com/RomanArenas32/pliego-documents-edit/releases/latest/download/Pliego-Windows.exe">
-          Descargar para Windows<small>Windows 10 y 11 · 64 bits</small>
+          <span data-i18n="dl.windows">Descargar para Windows</span><small data-i18n="dl.windowsNote">Windows 10 y 11 · 64 bits</small>
         </a>
         <a class="btn" id="dl-mac" href="https://github.com/RomanArenas32/pliego-documents-edit/releases/latest/download/Pliego-macOS.dmg">
-          Descargar para macOS<small>Apple Silicon e Intel</small>
+          <span data-i18n="dl.mac">Descargar para macOS</span><small data-i18n="dl.macNote">Apple Silicon e Intel</small>
         </a>
       </div>
-      <p class="note">¿Primera vez? Mira <a href="#instalar">cómo instalarlo</a>. Todas las versiones están en <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases">GitHub</a>.</p>
+      <p class="note" data-i18n="dl.note">¿Primera vez? Mira <a href="#instalar">cómo instalarlo</a>. Todas las versiones están en <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases">GitHub</a>.</p>
     </div>
 
     <div class="shot">
-      <img src="captura.png" alt="Pliego con una propuesta abierta y una frase resaltada en amarillo" width="1600" height="1000">
+      <img src="captura.png" data-i18n-alt="shot.alt" alt="Pliego con una propuesta abierta y una frase resaltada en amarillo" width="1600" height="1000">
     </div>
   </div>
 
@@ -164,16 +184,16 @@
     <div class="wrap">
       <div class="privacy">
         <div>
-          <h3>Tus archivos se quedan contigo</h3>
-          <p>Las páginas web de PDF suben tus documentos a sus servidores. Pliego los procesa en tu computadora.</p>
+          <h3 data-i18n="why.local.title">Tus archivos se quedan contigo</h3>
+          <p data-i18n="why.local.text">Las páginas web de PDF suben tus documentos a sus servidores. Pliego los procesa en tu computadora.</p>
         </div>
         <div>
-          <h3>Funciona sin internet</h3>
-          <p>En un avión, en la oficina sin red o con datos privados: no necesita conexión.</p>
+          <h3 data-i18n="why.offline.title">Funciona sin internet</h3>
+          <p data-i18n="why.offline.text">En un avión, en la oficina sin red o con datos privados: no necesita conexión.</p>
         </div>
         <div>
-          <h3>Sin límites ni marcas de agua</h3>
-          <p>Sin cantidad máxima de archivos, sin suscripción y sin sellos en tus documentos.</p>
+          <h3 data-i18n="why.limits.title">Sin límites ni marcas de agua</h3>
+          <p data-i18n="why.limits.text">Sin cantidad máxima de archivos, sin suscripción y sin sellos en tus documentos.</p>
         </div>
       </div>
     </div>
@@ -181,41 +201,41 @@
 
   <section id="funciones">
     <div class="wrap">
-      <h2>Todo lo que necesitas</h2>
-      <p class="sub">Las herramientas de los editores de pago, en una app liviana.</p>
+      <h2 data-i18n="features.title">Todo lo que necesitas</h2>
+      <p class="sub" data-i18n="features.sub">Las herramientas de los editores de pago, en una app liviana.</p>
       <div class="grid">
-        <div class="card"><span class="tag">Editar</span><h3>Corrige el texto original</h3><p>Cambia palabras del PDF manteniendo la fuente, el tamaño y el color. Agrega texto nuevo donde quieras.</p></div>
-        <div class="card"><span class="tag">Firmar</span><h3>Firma y agrega imágenes</h3><p>Dibuja tu firma o usa una imagen, y colócala en cualquier página.</p></div>
-        <div class="card"><span class="tag">Formularios</span><h3>Rellena formularios</h3><p>Campos de texto, casillas y listas, que se ven igual en cualquier otro lector.</p></div>
-        <div class="card"><span class="tag">Revisar</span><h3>Resalta, subraya y comenta</h3><p>Resaltado, subrayado, tachado, notas adhesivas, rectángulos y lápiz libre.</p></div>
-        <div class="card"><span class="tag">Privacidad</span><h3>Oculta datos de verdad</h3><p>Lo que tapas se borra del archivo, no solo se cubre. Busca un dato y ocúltalo en todas las páginas.</p></div>
-        <div class="card"><span class="tag">Páginas</span><h3>Organiza tus documentos</h3><p>Une PDFs, rota, elimina, extrae y divide páginas. Agrega páginas en blanco.</p></div>
-        <div class="card"><span class="tag">Convertir</span><h3>Exporta e importa</h3><p>Exporta a Word o a imágenes, y crea un PDF a partir de fotos.</p></div>
-        <div class="card"><span class="tag">Proteger</span><h3>Contraseña y compresión</h3><p>Protege con cifrado AES-256 y reduce el tamaño de PDFs pesados.</p></div>
-        <div class="card"><span class="tag">En serie</span><h3>Genera cientos de documentos</h3><p>Certificados, constancias o etiquetas desde una planilla de Excel o CSV, con códigos QR incluidos.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.edit.tag">Editar</span><h3 data-i18n="f.edit.title">Corrige el texto original</h3><p data-i18n="f.edit.text">Cambia palabras del PDF manteniendo la fuente, el tamaño y el color. Agrega texto nuevo donde quieras.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.sign.tag">Firmar</span><h3 data-i18n="f.sign.title">Firma y agrega imágenes</h3><p data-i18n="f.sign.text">Dibuja tu firma o usa una imagen, y colócala en cualquier página.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.forms.tag">Formularios</span><h3 data-i18n="f.forms.title">Rellena formularios</h3><p data-i18n="f.forms.text">Campos de texto, casillas y listas, que se ven igual en cualquier otro lector.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.review.tag">Revisar</span><h3 data-i18n="f.review.title">Resalta, subraya y comenta</h3><p data-i18n="f.review.text">Resaltado, subrayado, tachado, notas adhesivas, rectángulos y lápiz libre.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.redact.tag">Privacidad</span><h3 data-i18n="f.redact.title">Oculta datos de verdad</h3><p data-i18n="f.redact.text">Lo que tapas se borra del archivo, no solo se cubre. Busca un dato y ocúltalo en todas las páginas.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.pages.tag">Páginas</span><h3 data-i18n="f.pages.title">Organiza tus documentos</h3><p data-i18n="f.pages.text">Une PDFs, rota, elimina, extrae y divide páginas. Agrega páginas en blanco.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.convert.tag">Convertir</span><h3 data-i18n="f.convert.title">Exporta e importa</h3><p data-i18n="f.convert.text">Exporta a Word o a imágenes, y crea un PDF a partir de fotos.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.protect.tag">Proteger</span><h3 data-i18n="f.protect.title">Contraseña y compresión</h3><p data-i18n="f.protect.text">Protege con cifrado AES-256 y reduce el tamaño de PDFs pesados.</p></div>
+        <div class="card"><span class="tag" data-i18n="f.batch.tag">En serie</span><h3 data-i18n="f.batch.title">Genera cientos de documentos</h3><p data-i18n="f.batch.text">Certificados, constancias o etiquetas desde una planilla de Excel o CSV, con códigos QR incluidos.</p></div>
       </div>
     </div>
   </section>
 
   <section id="instalar">
     <div class="wrap">
-      <h2>Cómo instalarlo</h2>
-      <p class="sub">Como es un proyecto gratuito, todavía no tiene certificado de firma pago. Por eso tu sistema muestra un aviso la primera vez. Es normal y pasa una sola vez.</p>
+      <h2 data-i18n="install.title">Cómo instalarlo</h2>
+      <p class="sub" data-i18n="install.sub">Como es un proyecto gratuito, todavía no tiene certificado de firma pago. Por eso tu sistema muestra un aviso la primera vez. Es normal y pasa una sola vez.</p>
       <div class="steps">
         <div class="card">
           <h3>Windows</h3>
           <ol>
-            <li>Descarga <strong>Pliego-Windows.exe</strong> y ábrelo.</li>
-            <li>Si aparece «Windows protegió su PC», haz clic en <strong>Más información</strong> y luego en <strong>Ejecutar de todas formas</strong>.</li>
-            <li>Sigue el instalador. Pliego queda en el menú Inicio.</li>
+            <li data-i18n="install.win1">Descarga <strong>Pliego-Windows.exe</strong> y ábrelo.</li>
+            <li data-i18n="install.win2">Si aparece «Windows protegió su PC», haz clic en <strong>Más información</strong> y luego en <strong>Ejecutar de todas formas</strong>.</li>
+            <li data-i18n="install.win3">Sigue el instalador. Pliego queda en el menú Inicio.</li>
           </ol>
         </div>
         <div class="card">
           <h3>macOS</h3>
           <ol>
-            <li>Descarga <strong>Pliego-macOS.dmg</strong>, ábrelo y arrastra Pliego a <strong>Aplicaciones</strong>.</li>
-            <li>Abre la app. Si macOS dice que no puede verificarla, haz clic en <strong>Aceptar</strong>.</li>
-            <li>Ve a <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, baja hasta el final y haz clic en <strong>Abrir igualmente</strong>.</li>
+            <li data-i18n="install.mac1">Descarga <strong>Pliego-macOS.dmg</strong>, ábrelo y arrastra Pliego a <strong>Aplicaciones</strong>.</li>
+            <li data-i18n="install.mac2">Abre la app. Si macOS dice que no puede verificarla, haz clic en <strong>Aceptar</strong>.</li>
+            <li data-i18n="install.mac3">Ve a <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, baja hasta el final y haz clic en <strong>Abrir igualmente</strong>.</li>
           </ol>
         </div>
       </div>
@@ -224,30 +244,30 @@
 
   <section id="preguntas">
     <div class="wrap">
-      <h2>Preguntas frecuentes</h2>
+      <h2 data-i18n="faq.title">Preguntas frecuentes</h2>
       <details>
-        <summary>¿Es realmente gratis?</summary>
-        <p>Sí. Todas sus funciones son gratis, sin suscripción, publicidad ni marcas de agua. El código es abierto bajo la licencia GPL-3.0.</p>
+        <summary data-i18n="faq.free.q">¿Es realmente gratis?</summary>
+        <p data-i18n="faq.free.a">Sí. Todas sus funciones son gratis, sin suscripción, publicidad ni marcas de agua. El código es abierto bajo la licencia GPL-3.0.</p>
       </details>
       <details>
-        <summary>¿Mis documentos se suben a internet?</summary>
-        <p>No. Todo se procesa en tu computadora. La app no envía tus archivos a ningún servidor.</p>
+        <summary data-i18n="faq.upload.q">¿Mis documentos se suben a internet?</summary>
+        <p data-i18n="faq.upload.a">No. Todo se procesa en tu computadora. La app no envía tus archivos a ningún servidor.</p>
       </details>
       <details>
-        <summary>¿Por qué mi sistema dice que la app no es de confianza?</summary>
-        <p>Windows y macOS muestran ese aviso con las apps que no tienen un certificado de firma, que cuesta dinero cada año. El código está publicado en GitHub para que cualquiera pueda revisarlo.</p>
+        <summary data-i18n="faq.trust.q">¿Por qué mi sistema dice que la app no es de confianza?</summary>
+        <p data-i18n="faq.trust.a">Windows y macOS muestran ese aviso con las apps que no tienen un certificado de firma, que cuesta dinero cada año. El código está publicado en GitHub para que cualquiera pueda revisarlo.</p>
       </details>
       <details>
-        <summary>¿Puedo abrir PDFs escaneados?</summary>
-        <p>Sí, puedes verlos, anotarlos, firmarlos y organizarlos. Lo que todavía no puede hacer es reconocer el texto de una imagen escaneada (OCR).</p>
+        <summary data-i18n="faq.scan.q">¿Puedo abrir PDFs escaneados?</summary>
+        <p data-i18n="faq.scan.a">Sí, puedes verlos, anotarlos, firmarlos y organizarlos. Lo que todavía no puede hacer es reconocer el texto de una imagen escaneada (OCR).</p>
       </details>
       <details>
-        <summary>¿Puedo abrir un PDF con doble clic?</summary>
-        <p>Sí. Haz clic derecho en un PDF, elige «Abrir con» y selecciona Pliego. Puedes marcarlo como app predeterminada.</p>
+        <summary data-i18n="faq.open.q">¿Puedo abrir un PDF con doble clic?</summary>
+        <p data-i18n="faq.open.a">Sí. Haz clic derecho en un PDF, elige «Abrir con» y selecciona Pliego. Puedes marcarlo como app predeterminada.</p>
       </details>
       <details>
-        <summary>Encontré un error o tengo una idea, ¿dónde lo cuento?</summary>
-        <p>En la sección <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">Issues de GitHub</a>. Si sabes programar, también puedes proponer cambios.</p>
+        <summary data-i18n="faq.bug.q">Encontré un error o tengo una idea, ¿dónde lo cuento?</summary>
+        <p data-i18n="faq.bug.a">En la sección <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">Issues de GitHub</a>. Si sabes programar, también puedes proponer cambios.</p>
       </details>
     </div>
   </section>
@@ -255,7 +275,7 @@
   <footer>
     <div class="wrap">
       Pliego · © 2026 <a href="https://www.veczail.com">Veczail Company</a> ·
-      Licencia <a href="https://github.com/RomanArenas32/pliego-documents-edit/blob/main/LICENSE">GPL-3.0</a>
+      <span data-i18n="footer.license">Licencia</span> <a href="https://github.com/RomanArenas32/pliego-documents-edit/blob/main/LICENSE">GPL-3.0</a>
     </div>
   </footer>
 
@@ -268,6 +288,105 @@
       btn.classList.add("primary");
       btn.parentElement.prepend(btn);
     }
+
+    // Language switch. The page is written in Spanish; English texts live here, keyed like the
+    // data-i18n attributes. The Spanish originals are kept so switching back restores them.
+    const EN = {
+      "title": "Pliego — Free PDF editor",
+      "description": "Edit, sign, fill, merge and protect PDFs for free and offline. Your files never leave your computer. For Windows and macOS.",
+      "nav.features": "Features",
+      "nav.install": "Install",
+      "nav.faq": "FAQ",
+      "hero.title": "Edit your PDFs.<br>Without uploading them anywhere.",
+      "hero.lead": "A complete PDF editor, free and open source. It works offline: your documents never leave your computer.",
+      "badge.free": "Free",
+      "badge.ads": "No ads",
+      "badge.account": "No account",
+      "badge.open": "Open source (GPL-3.0)",
+      "dl.windows": "Download for Windows",
+      "dl.windowsNote": "Windows 10 and 11 · 64-bit",
+      "dl.mac": "Download for macOS",
+      "dl.macNote": "Apple Silicon and Intel",
+      "dl.note": 'First time? See <a href="#instalar">how to install it</a>. All versions are on <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases">GitHub</a>.',
+      "shot.alt": "Pliego with a proposal open and a sentence highlighted in yellow",
+      "why.local.title": "Your files stay with you",
+      "why.local.text": "PDF websites upload your documents to their servers. Pliego processes them on your computer.",
+      "why.offline.title": "Works offline",
+      "why.offline.text": "On a plane, at an office without network or with private data: no connection needed.",
+      "why.limits.title": "No limits or watermarks",
+      "why.limits.text": "No maximum number of files, no subscription and no stamps on your documents.",
+      "features.title": "Everything you need",
+      "features.sub": "The tools of paid editors, in a lightweight app.",
+      "f.edit.tag": "Edit",
+      "f.edit.title": "Fix the original text",
+      "f.edit.text": "Change words in the PDF keeping the font, size and color. Add new text anywhere.",
+      "f.sign.tag": "Sign",
+      "f.sign.title": "Sign and add images",
+      "f.sign.text": "Draw your signature or use an image, and place it on any page.",
+      "f.forms.tag": "Forms",
+      "f.forms.title": "Fill in forms",
+      "f.forms.text": "Text fields, checkboxes and lists that look the same in any other reader.",
+      "f.review.tag": "Review",
+      "f.review.title": "Highlight, underline and comment",
+      "f.review.text": "Highlight, underline, strikethrough, sticky notes, rectangles and freehand pen.",
+      "f.redact.tag": "Privacy",
+      "f.redact.title": "Truly redact data",
+      "f.redact.text": "What you cover is removed from the file, not just hidden. Search for a value and redact it on every page.",
+      "f.pages.tag": "Pages",
+      "f.pages.title": "Organize your documents",
+      "f.pages.text": "Merge PDFs; rotate, delete, extract and split pages. Add blank pages.",
+      "f.convert.tag": "Convert",
+      "f.convert.title": "Export and import",
+      "f.convert.text": "Export to Word or images, and create a PDF from photos.",
+      "f.protect.tag": "Protect",
+      "f.protect.title": "Password and compression",
+      "f.protect.text": "Protect with AES-256 encryption and shrink heavy PDFs.",
+      "f.batch.tag": "Batch",
+      "f.batch.title": "Generate hundreds of documents",
+      "f.batch.text": "Certificates, letters or labels from an Excel or CSV spreadsheet, QR codes included.",
+      "install.title": "How to install it",
+      "install.sub": "As a free project, it doesn't have a paid signing certificate yet. That's why your system shows a warning the first time. It's normal and only happens once.",
+      "install.win1": "Download <strong>Pliego-Windows.exe</strong> and open it.",
+      "install.win2": "If “Windows protected your PC” appears, click <strong>More info</strong> and then <strong>Run anyway</strong>.",
+      "install.win3": "Follow the installer. Pliego will be in the Start menu.",
+      "install.mac1": "Download <strong>Pliego-macOS.dmg</strong>, open it and drag Pliego to <strong>Applications</strong>.",
+      "install.mac2": "Open the app. If macOS says it can't verify it, click <strong>Done</strong>.",
+      "install.mac3": "Go to <strong>System Settings → Privacy &amp; Security</strong>, scroll to the bottom and click <strong>Open Anyway</strong>.",
+      "faq.title": "Frequently asked questions",
+      "faq.free.q": "Is it really free?",
+      "faq.free.a": "Yes. All its features are free, with no subscription, ads or watermarks. The code is open source under the GPL-3.0 license.",
+      "faq.upload.q": "Are my documents uploaded to the internet?",
+      "faq.upload.a": "No. Everything is processed on your computer. The app doesn't send your files to any server.",
+      "faq.trust.q": "Why does my system say the app isn't trusted?",
+      "faq.trust.a": "Windows and macOS show that warning for apps without a signing certificate, which costs money every year. The code is published on GitHub so anyone can review it.",
+      "faq.scan.q": "Can I open scanned PDFs?",
+      "faq.scan.a": "Yes, you can view, annotate, sign and organize them. What it can't do yet is recognize the text in a scanned image (OCR).",
+      "faq.open.q": "Can I open a PDF with a double click?",
+      "faq.open.a": "Yes. Right-click a PDF, choose “Open with” and select Pliego. You can set it as the default app.",
+      "faq.bug.q": "I found a bug or have an idea, where do I report it?",
+      "faq.bug.a": 'In the <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">GitHub Issues</a> section. If you know how to code, you can also propose changes.',
+      "footer.license": "License",
+    };
+
+    const original = new Map();
+    function setLang(lang) {
+      const en = lang === "en";
+      document.documentElement.lang = lang;
+      for (const [attr, prop] of [["data-i18n", "innerHTML"], ["data-i18n-alt", "alt"], ["data-i18n-content", "content"]]) {
+        for (const el of document.querySelectorAll(`[${attr}]`)) {
+          if (!original.has(el)) original.set(el, el[prop]);
+          el[prop] = en ? EN[el.getAttribute(attr)] : original.get(el);
+        }
+      }
+      for (const b of document.querySelectorAll(".lang button")) b.setAttribute("aria-pressed", String(b.dataset.lang === lang));
+      try { localStorage.setItem("lang", lang); } catch {}
+    }
+
+    let saved = null;
+    try { saved = localStorage.getItem("lang"); } catch {}
+    const preferred = saved || (/^es\b/i.test(navigator.language || "") ? "es" : "en");
+    setLang(preferred === "en" ? "en" : "es");
+    for (const b of document.querySelectorAll(".lang button")) b.addEventListener("click", () => setLang(b.dataset.lang));
   </script>
 </body>
 </html>
