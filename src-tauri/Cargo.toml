@@ -2,7 +2,7 @@
 name = "pliego"
 version = "0.1.0"
 description = "Editor de PDF gratuito y de código abierto"
-authors = ["Roman Emiliano Arenas"]
+authors = ["Veczail Company"]
 license = "GPL-3.0-or-later"
 publish = false
 repository = "https://github.com/RomanArenas32/pliego-documents-edit"

@@ -51,7 +51,7 @@ Si cambian las dependencias, regenerar los avisos de licencias de terceros con
 
 ## Licencia
 
-Copyright © 2026 Roman Emiliano Arenas.
+Copyright © 2026 [Veczail Company](https://www.veczail.com).
 
 [GPL-3.0](LICENSE). Pliego incluye software de terceros; sus licencias están en
 [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt).
