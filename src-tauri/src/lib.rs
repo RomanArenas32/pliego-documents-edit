@@ -10,6 +10,7 @@ mod pdf;
 mod redact;
 mod text;
 mod tools;
+mod watermark;
 mod word;
 
 use std::sync::Mutex;
@@ -109,6 +110,9 @@ pub fn run() {
             tools::images_to_pdf_command,
             tools::print_window,
             word::export_word,
+            watermark::find_watermarks,
+            watermark::remove_watermarks,
+            watermark::preview_watermarks,
             markup::add_markup,
             redact::redact,
             markup::add_note,

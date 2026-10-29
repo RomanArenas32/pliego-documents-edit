@@ -2461,6 +2461,7 @@ window.addEventListener("DOMContentLoaded", () => {
       await openPath(path);
     },
     renderPng,
+    edit: (command, args) => edit(command, args),
     info: showInfo,
     error: showError,
   });

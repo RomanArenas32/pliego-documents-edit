@@ -1,7 +1,8 @@
 /**
  * "Tools" menu: print, extract and split pages, export them as images,
- * reduce the size, protect with a password and create a PDF from images.
- * All of them (except print) write new files and don't touch the open document.
+ * reduce the size, protect with a password, create a PDF from images and remove watermarks.
+ * All of them except print and watermark removal write new files and don't touch the open
+ * document; watermark removal is an edit (it can be undone).
  */
 
 import { invoke } from "@tauri-apps/api/core";
@@ -13,6 +14,8 @@ export interface ToolsContext {
   /** Opens a PDF (asks first if there are unsaved changes). */
   openPdf(path: string): Promise<void>;
   renderPng(index: number, width: number): Promise<string>;
+  /** Runs an edit command on the open document (undoable); null if it failed. */
+  edit(command: string, args: Record<string, unknown>): Promise<unknown | null>;
   info(message: string): void;
   error(e: unknown): void;
 }
@@ -318,6 +321,137 @@ async function exportWord() {
   );
 }
 
+// ---------- Watermarks ----------
+
+interface WatermarkCandidate {
+  key: string;
+  label: string;
+  pages: number[];
+  likely: boolean;
+}
+
+/** Width of the preview render, in pixels. */
+const WATERMARK_PREVIEW_WIDTH = 600;
+
+async function removeWatermarks() {
+  const found = await run("Buscando marcas de agua…", () => invoke<WatermarkCandidate[]>("find_watermarks"));
+  if (!found) return;
+  const candidates = found.value;
+  if (candidates.length === 0) {
+    ctx.info(
+      "No se encontraron marcas de agua. Si la marca es parte de una página escaneada (una foto), no se puede quitar.",
+    );
+    return;
+  }
+
+  const dialog = $<HTMLDialogElement>("wm-dialog");
+  const list = $("wm-list");
+  const img = $<HTMLImageElement>("wm-img");
+  const pageLabel = $("wm-page");
+  const ok = $<HTMLButtonElement>("wm-ok");
+  const viewButtons = [...dialog.querySelectorAll<HTMLButtonElement>(".wm-view button")];
+  const checked = new Set(candidates.filter((c) => c.likely).map((c) => c.key));
+  let page = candidates[0].pages[0];
+  let view: "after" | "before" = "after";
+  /** Discards previews that arrive after a newer one. */
+  let generation = 0;
+
+  const pagesText = (pages: number[]) =>
+    pages.length === 1 ? `en la página ${pages[0] + 1}` : `en ${pages.length} páginas`;
+
+  const refresh = async () => {
+    const mine = ++generation;
+    ok.disabled = checked.size === 0;
+    ok.textContent = checked.size > 1 ? `Quitar (${checked.size})` : "Quitar";
+    for (const b of viewButtons) b.setAttribute("aria-pressed", String(b.dataset.view === view));
+    for (const li of list.querySelectorAll<HTMLElement>("li")) {
+      li.classList.toggle("shown", candidates[Number(li.dataset.index)].pages.includes(page));
+    }
+    pageLabel.textContent = `Página ${page + 1}`;
+    try {
+      const url =
+        view === "before"
+          ? await ctx.renderPng(page, WATERMARK_PREVIEW_WIDTH)
+          : URL.createObjectURL(
+              new Blob(
+                [
+                  await invoke<ArrayBuffer>("preview_watermarks", {
+                    keys: [...checked],
+                    index: page,
+                    width: WATERMARK_PREVIEW_WIDTH,
+                  }),
+                ],
+                { type: "image/png" },
+              ),
+            );
+      if (mine !== generation) return URL.revokeObjectURL(url);
+      if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
+      img.src = url;
+    } catch (e) {
+      ctx.error(e);
+    }
+  };
+
+  list.replaceChildren(
+    ...candidates.map((c, i) => {
+      const li = document.createElement("li");
+      li.dataset.index = String(i);
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = checked.has(c.key);
+      const text = document.createElement("div");
+      const label = document.createElement("span");
+      label.className = "wm-label";
+      label.textContent = c.label;
+      const detail = document.createElement("small");
+      detail.textContent = `${pagesText(c.pages)}${c.likely ? "" : " · se repite (puede ser un encabezado o un logo)"}`;
+      text.append(label, detail);
+      li.append(box, text);
+      box.addEventListener("change", () => {
+        if (box.checked) checked.add(c.key);
+        else checked.delete(c.key);
+        page = c.pages[0];
+        refresh();
+      });
+      // Clicking the row (not the box) only shows where it is.
+      li.addEventListener("click", (e) => {
+        if (e.target === box) return;
+        page = c.pages[0];
+        refresh();
+      });
+      return li;
+    }),
+  );
+  for (const b of viewButtons) {
+    b.onclick = () => {
+      view = b.dataset.view as "after" | "before";
+      refresh();
+    };
+  }
+
+  const keys = await new Promise<string[] | null>((resolve) => {
+    const finish = (result: string[] | null) => {
+      ok.removeEventListener("click", apply);
+      dialog.removeEventListener("close", cancel);
+      if (dialog.open) dialog.close();
+      resolve(result);
+    };
+    const apply = () => finish([...checked]);
+    const cancel = () => finish(null);
+    ok.addEventListener("click", apply);
+    dialog.addEventListener("close", cancel);
+    dialog.showModal();
+    refresh();
+  });
+  generation++;
+  if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
+  img.removeAttribute("src");
+  if (!keys?.length) return;
+  if (await ctx.edit("remove_watermarks", { keys })) {
+    ctx.info(keys.length === 1 ? "Listo: se quitó la marca de agua." : `Listo: se quitaron ${keys.length} marcas de agua.`);
+  }
+}
+
 async function imagesToPdf() {
   const picked = await open({ multiple: true, filters: IMAGE_FILTER });
   const paths = Array.isArray(picked) ? picked : picked ? [picked] : [];
@@ -378,6 +512,7 @@ const ITEMS: { label: string; run: () => unknown; needsDoc: boolean; shortcut?: 
   { label: "Exportar a Word…", run: exportWord, needsDoc: true },
   { label: "Reducir tamaño…", run: compressPdf, needsDoc: true },
   { label: "Proteger con contraseña…", run: protectPdf, needsDoc: true },
+  { label: "Quitar marca de agua…", run: removeWatermarks, needsDoc: true },
   { label: "Crear PDF desde imágenes…", run: imagesToPdf, needsDoc: false },
 ];
 

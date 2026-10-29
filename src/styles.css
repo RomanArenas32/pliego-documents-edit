@@ -843,6 +843,88 @@ button.primary:not(:disabled) {
   color: var(--muted);
 }
 
+.dialog.wide {
+  width: min(820px, calc(100vw - 32px));
+}
+
+.wm-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 14px;
+  margin: 4px 0;
+}
+
+.wm-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 440px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wm-list li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.wm-list li.shown {
+  border-color: var(--accent);
+}
+
+.wm-list input {
+  margin-top: 3px;
+}
+
+.wm-list .wm-label {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.wm-list small {
+  display: block;
+  color: var(--muted);
+}
+
+.wm-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.wm-preview img {
+  width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.wm-view {
+  display: flex;
+  gap: 4px;
+}
+
+.wm-view button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (max-width: 640px) {
+  .wm-body {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dialog.narrow {
   width: min(400px, calc(100vw - 32px));
 }

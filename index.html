@@ -203,6 +203,32 @@
 
     <div id="tools-menu" class="menu" role="menu" hidden></div>
 
+    <dialog id="wm-dialog" class="dialog wide">
+      <form method="dialog" class="dialog-body">
+        <header>
+          <h2>Quitar marca de agua</h2>
+          <button value="cancel" class="icon" title="Cerrar">×</button>
+        </header>
+        <p class="hint">Elige qué quitar. Las que parecen marcas de agua ya están marcadas; revisa la vista previa antes de aplicar. Se puede deshacer.</p>
+        <div class="wm-body">
+          <ul id="wm-list" class="wm-list"></ul>
+          <div class="wm-preview">
+            <div class="wm-view" role="group" aria-label="Vista previa">
+              <button type="button" data-view="after" aria-pressed="true">Sin marca</button>
+              <button type="button" data-view="before" aria-pressed="false">Original</button>
+            </div>
+            <img id="wm-img" alt="Vista previa de la página">
+            <small id="wm-page"></small>
+          </div>
+        </div>
+        <p class="hint">Úsala con documentos tuyos o que tengas permiso de modificar. Si la marca es parte de una página escaneada (una foto), no se puede quitar.</p>
+        <div class="sign-row end">
+          <button value="cancel">Cancelar</button>
+          <button type="button" id="wm-ok" class="primary">Quitar</button>
+        </div>
+      </form>
+    </dialog>
+
     <dialog id="tool-dialog" class="dialog narrow">
       <form method="dialog" class="dialog-body">
         <header>

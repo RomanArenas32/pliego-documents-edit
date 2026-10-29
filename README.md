@@ -20,6 +20,7 @@ Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
 - **Revisar:** resaltar, subrayar, tachar, notas adhesivas, rectángulos y lápiz.
 - **Ocultar datos de verdad:** lo tapado se borra del archivo, no solo se cubre.
 - **Páginas:** unir, rotar, eliminar, extraer, dividir e insertar páginas.
+- **Marcas de agua:** encontrarlas y quitarlas de tus documentos, con vista previa.
 - **Convertir:** exportar a Word o a imágenes, y crear un PDF desde fotos.
 - **Proteger:** contraseña con cifrado AES-256 y reducción de tamaño.
 - **En serie:** generar documentos desde una planilla de Excel o CSV, con códigos QR.

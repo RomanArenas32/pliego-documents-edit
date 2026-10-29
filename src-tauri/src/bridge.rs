@@ -89,6 +89,12 @@ fn call(state: &AppState, cmd: &str, args: Value) -> Result<Reply, String> {
             let a: Args = serde_json::from_value(args).map_err(|e| e.to_string())?;
             Reply::Bytes(batch::preview_png(state, &a.fields, &a.row, a.page, a.width)?)
         }
+        "preview_watermarks" => {
+            #[derive(serde::Deserialize)]
+            struct Args { keys: Vec<String>, index: Page, width: u32 }
+            let a: Args = serde_json::from_value(args).map_err(|e| e.to_string())?;
+            Reply::Bytes(state.preview_watermarks(a.keys, a.index, a.width)?)
+        }
         _ => dispatch!(cmd, args, {
             open_pdf(path: String, password: Option<String>) => state.open_pdf(path, password),
             save_pdf(path: Option<String>) => state.save_pdf(path),
@@ -137,6 +143,8 @@ fn call(state: &AppState, cmd: &str, args: Value) -> Result<Reply, String> {
             images_to_pdf(paths: Vec<String>, output: String) => crate::tools::images_to_pdf(paths, output),
             redact(areas: Vec<crate::redact::RedactArea>) => state.redact(areas),
             export_word(path: String) => state.export_word(path),
+            find_watermarks() => state.find_watermarks(),
+            remove_watermarks(keys: Vec<String>) => state.remove_watermarks(keys),
             take_pending_files() => Ok::<Vec<String>, String>(Vec::new()),
             add_image(index: Page, source: crate::images::ImageSource, center: P, width: f32) =>
                 state.add_image(index, source, center, width),
