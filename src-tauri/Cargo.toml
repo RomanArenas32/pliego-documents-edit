@@ -1,6 +1,6 @@
 [package]
 name = "pliego"
-version = "0.1.0"
+version = "0.3.0"
 description = "Editor de PDF gratuito y de código abierto"
 authors = ["Veczail Company"]
 license = "GPL-3.0-or-later"
