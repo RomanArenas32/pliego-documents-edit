@@ -19,7 +19,29 @@ permissions:
   contents: write
 
 jobs:
+  # The installers take their version from these files, not from the tag: if they don't match,
+  # stop before compiling (the app would show the old number and Google Play would reject it).
+  version:
+    name: versión
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Comprobar que la etiqueta coincide con la versión
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          npm=$(jq -r .version package.json)
+          tauri=$(jq -r .version src-tauri/tauri.conf.json)
+          cargo=$(sed -n 's/^version = "\(.*\)"/\1/p' src-tauri/Cargo.toml | head -1)
+          echo "Etiqueta: $tag · package.json: $npm · tauri.conf.json: $tauri · Cargo.toml: $cargo"
+          if [ "$npm" != "$tag" ] || [ "$tauri" != "$tag" ] || [ "$cargo" != "$tag" ]; then
+            echo "::error::La etiqueta $GITHUB_REF_NAME no coincide con la versión de los archivos. Pon \"$tag\" en package.json, src-tauri/tauri.conf.json y src-tauri/Cargo.toml, haz commit y crea la etiqueta de nuevo."
+            exit 1
+          fi
+
   build:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -107,6 +129,7 @@ jobs:
           generate_release_notes: true
 
   android:
+    needs: version
     name: android
     runs-on: ubuntu-latest
     steps:
