@@ -343,6 +343,10 @@ button.danger:not(:disabled) {
   font-size: 15px;
 }
 
+.empty button + button {
+  margin-left: 8px;
+}
+
 /* ---------- Search and text selection ---------- */
 
 .workspace {
@@ -929,6 +933,151 @@ button.primary:not(:disabled) {
   width: min(400px, calc(100vw - 32px));
 }
 
+/* ---------- Scan (scan.ts) ---------- */
+
+.scan-strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 2px 6px;
+}
+
+.scan-thumb,
+.scan-add {
+  flex: 0 0 auto;
+  height: 76px;
+  padding: 0;
+  border-radius: 6px;
+}
+
+.scan-thumb {
+  position: relative;
+  width: 58px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  background: var(--bg);
+}
+
+.scan-thumb[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+
+.scan-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.scan-thumb span {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: rgb(0 0 0 / 0.6);
+  color: #fff;
+  font-size: 11px;
+  line-height: 16px;
+}
+
+.scan-add {
+  padding: 0 12px;
+  border-style: dashed;
+  color: var(--accent);
+}
+
+.scan-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.scan-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+  padding: 18px;
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.scan-frame {
+  position: relative;
+  line-height: 0;
+}
+
+.scan-frame img {
+  display: block;
+  max-width: 100%;
+  max-height: min(56vh, 520px);
+  transition: opacity 0.15s;
+}
+
+.scan-frame:not(.editing) img {
+  background: #fff;
+  box-shadow: var(--shadow);
+}
+
+.scan-frame.loading img {
+  opacity: 0.5;
+}
+
+.scan-outline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.scan-outline polygon {
+  fill: rgb(37 99 235 / 0.12);
+  stroke: var(--accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+/* Big enough to grab with a finger; the dot in the middle marks the exact corner. */
+.scan-handle {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  transform: translate(-50%, -50%);
+  border: 3px solid var(--accent);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.3);
+  box-shadow: 0 0 0 1px rgb(255 255 255 / 0.8);
+  cursor: grab;
+  touch-action: none;
+}
+
+.scan-handle::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.scan-handle.dragging {
+  cursor: grabbing;
+  background: rgb(37 99 235 / 0.2);
+}
+
+.scan-actions {
+  justify-content: center;
+}
+
 .tool-fields {
   display: flex;
   flex-direction: column;
@@ -1109,6 +1258,35 @@ body.drawer-open .page-drawer {
 .mobile .dialog.narrow {
   width: calc(100vw - 16px);
   max-height: calc(100vh - 32px);
+}
+
+.mobile .scan-handle {
+  width: 40px;
+  height: 40px;
+}
+
+/* Full height on the phone; the photo takes whatever room the controls leave. */
+.mobile .dialog.scan-dialog {
+  height: calc(100dvh - 24px);
+  max-height: calc(100dvh - 24px);
+}
+
+.mobile .scan-dialog .dialog-body {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.mobile .scan-stage {
+  flex: 1 1 0;
+  min-height: 0;
+  padding: 22px 12px;
+  container-type: size;
+}
+
+.mobile .scan-frame img {
+  max-height: 40vh;
+  max-height: 100cqh;
+  max-width: 100cqw;
 }
 
 .mobile .menu {

@@ -9,6 +9,7 @@ mod images;
 mod markup;
 mod pdf;
 mod redact;
+mod scan;
 mod text;
 mod tools;
 mod watermark;
@@ -122,6 +123,12 @@ pub fn run() {
             watermark::find_watermarks,
             watermark::remove_watermarks,
             watermark::preview_watermarks,
+            scan::scan_add,
+            scan::scan_photo,
+            scan::scan_preview,
+            scan::scan_save,
+            scan::scan_clear,
+            files::take_photo,
             markup::add_markup,
             redact::redact,
             markup::add_note,

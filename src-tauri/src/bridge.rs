@@ -95,6 +95,18 @@ fn call(state: &AppState, cmd: &str, args: Value) -> Result<Reply, String> {
             let a: Args = serde_json::from_value(args).map_err(|e| e.to_string())?;
             Reply::Bytes(state.preview_watermarks(a.keys, a.index, a.width)?)
         }
+        "scan_photo" => {
+            #[derive(serde::Deserialize)]
+            struct Args { id: u32, width: u32 }
+            let a: Args = serde_json::from_value(args).map_err(|e| e.to_string())?;
+            Reply::Bytes(crate::scan::photo_jpeg(a.id, a.width)?)
+        }
+        "scan_preview" => {
+            #[derive(serde::Deserialize)]
+            struct Args { page: crate::scan::ScanPage, width: u32 }
+            let a: Args = serde_json::from_value(args).map_err(|e| e.to_string())?;
+            Reply::Bytes(crate::scan::preview_jpeg(&a.page, a.width)?)
+        }
         _ => dispatch!(cmd, args, {
             open_pdf(path: String, password: Option<String>) => state.open_pdf(path, password),
             save_pdf(path: Option<String>) => state.save_pdf(path),
@@ -155,6 +167,10 @@ fn call(state: &AppState, cmd: &str, args: Value) -> Result<Reply, String> {
             batch_generate(fields: Vec<batch::Field>, rows: Vec<Vec<String>>, output: batch::Output) =>
                 batch::template_bytes(state).and_then(|t| batch::generate(&t, &fields, &rows, output, |_, _| {})),
             batch_cancel() => Ok::<(), String>(batch::cancel()),
+            scan_add(path: String, temporary: bool) => crate::scan::add(path, temporary),
+            scan_save(pages: Vec<crate::scan::ScanPage>, output: String) =>
+                crate::scan::save(pages, output, |_, _| ()),
+            scan_clear() => Ok::<(), String>(crate::scan::clear()),
         }),
     })
 }

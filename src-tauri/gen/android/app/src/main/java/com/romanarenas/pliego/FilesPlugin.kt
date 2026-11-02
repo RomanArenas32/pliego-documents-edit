@@ -3,8 +3,10 @@ package com.romanarenas.pliego
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import java.io.File
+import androidx.core.content.FileProvider
 import androidx.activity.result.ActivityResult
 import app.tauri.annotation.ActivityCallback
 import app.tauri.annotation.Command
@@ -55,6 +57,41 @@ class FilesPlugin(private val activity: Activity) : Plugin(activity) {
         }
         val response = JSObject()
         response.put("uri", uri?.toString())
+        invoke.resolve(response)
+    }
+
+    /** File the camera app is writing the photo to (see takePhoto). */
+    private var photoFile: File? = null
+
+    /**
+     * Opens the camera app to photograph a document. The photo goes to a file in the app's
+     * cache, shared through the FileProvider; using the camera app this way needs no camera
+     * permission.
+     */
+    @Command
+    fun takePhoto(invoke: Invoke) {
+        val dir = File(activity.cacheDir, "scan").apply { mkdirs() }
+        val file = File(dir, "foto-${System.currentTimeMillis()}.jpg")
+        photoFile = file
+        val uri = FileProvider.getUriForFile(activity, "${activity.packageName}.fileprovider", file)
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, uri)
+        intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        try {
+            startActivityForResult(invoke, intent, "takePhotoResult")
+        } catch (e: Exception) {
+            invoke.reject("No hay una app de cámara en este teléfono.")
+        }
+    }
+
+    @ActivityCallback
+    fun takePhotoResult(invoke: Invoke, result: ActivityResult) {
+        val file = photoFile
+        photoFile = null
+        val taken = result.resultCode == Activity.RESULT_OK && file != null && file.length() > 0
+        if (!taken) file?.delete()
+        val response = JSObject()
+        response.put("path", if (taken) file!!.absolutePath else null)
         invoke.resolve(response)
     }
 

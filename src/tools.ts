@@ -6,8 +6,9 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
+import { withProgress } from "./progress";
+import { initScan, scanDocument } from "./scan";
 
 export interface ToolsContext {
   doc(): { path: string; name: string; pages: { width: number; height: number }[] } | null;
@@ -189,37 +190,6 @@ async function run<T>(working: string, task: () => Promise<T>): Promise<{ value:
     ctx.error(e);
     return null;
   } finally {
-    document.body.classList.remove("working");
-  }
-}
-
-/**
- * Runs a long command showing "<label> página 3 de 15…" and a bar, from the `event` the
- * command emits after each page. Shown after a moment, so quick runs don't flash it.
- */
-async function withProgress<T>(event: string, label: string, task: () => Promise<T>): Promise<T> {
-  const dialog = $<HTMLDialogElement>("progress-dialog");
-  const text = $("progress-label");
-  const bar = $<HTMLProgressElement>("progress-bar");
-  text.textContent = `${label}…`;
-  bar.removeAttribute("value");
-  // It can't be closed: the task keeps running anyway.
-  const keepOpen = (e: Event) => e.preventDefault();
-  dialog.addEventListener("cancel", keepOpen);
-  const timer = window.setTimeout(() => dialog.showModal(), 300);
-  const unlisten = await listen<{ done: number; total: number }>(event, ({ payload }) => {
-    text.textContent = `${label} página ${payload.done} de ${payload.total}…`;
-    bar.max = payload.total;
-    bar.value = payload.done;
-  });
-  document.body.classList.add("working");
-  try {
-    return await task();
-  } finally {
-    clearTimeout(timer);
-    unlisten();
-    dialog.removeEventListener("cancel", keepOpen);
-    if (dialog.open) dialog.close();
     document.body.classList.remove("working");
   }
 }
@@ -574,11 +544,14 @@ const ITEMS: MenuItem[] = [
   { label: "Reducir tamaño…", run: compressPdf, needsDoc: true },
   { label: "Proteger con contraseña…", run: protectPdf, needsDoc: true },
   { label: "Quitar marca de agua…", run: removeWatermarks, needsDoc: true },
+  { label: "Escanear documento…", run: () => scanDocument(ctx), needsDoc: false },
   { label: "Crear PDF desde imágenes…", run: imagesToPdf, needsDoc: false },
 ];
 
 export function initTools(context: ToolsContext) {
   ctx = context;
+  initScan();
+  $("btn-scan-empty").addEventListener("click", () => scanDocument(ctx));
   const button = $<HTMLButtonElement>("btn-tools");
   const menu = $("tools-menu");
   const close = () => {
@@ -596,7 +569,8 @@ export function initTools(context: ToolsContext) {
       b.innerHTML = `<span></span><kbd></kbd>`;
       b.querySelector("span")!.textContent = item.label;
       b.querySelector("kbd")!.textContent = item.shortcut ?? "";
-      if (i === items.length - 1) b.classList.add("separated");
+      // Apart from the rest: the tools that start from scratch, without an open PDF.
+      if (!item.needsDoc && items[i - 1]?.needsDoc) b.classList.add("separated");
       b.addEventListener("click", () => {
         close();
         item.run();

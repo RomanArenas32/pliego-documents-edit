@@ -101,6 +101,7 @@
         <div id="empty" class="empty">
           <p>Abre un PDF o arrástralo aquí</p>
           <button id="btn-open-empty">Abrir PDF…</button>
+          <button id="btn-scan-empty">Escanear documento…</button>
         </div>
         <div id="pages" class="pages" data-tool="select" hidden></div>
       </main>
@@ -244,7 +245,46 @@
       </form>
     </dialog>
 
-    <!-- Long tasks: "Analizando página 3 de 15…" (tools.ts, withProgress). -->
+    <!-- Photos of paper pages → PDF (scan.ts). -->
+    <dialog id="scan-dialog" class="dialog wide scan-dialog">
+      <form method="dialog" class="dialog-body">
+        <header>
+          <h2>Escanear documento</h2>
+          <button value="cancel" class="icon" title="Cerrar">×</button>
+        </header>
+        <div id="scan-strip" class="scan-strip"></div>
+        <div class="scan-toolbar">
+          <div class="group segmented" id="scan-view">
+            <button type="button" data-view="edges" aria-pressed="true">Bordes</button>
+            <button type="button" data-view="result" aria-pressed="false">Resultado</button>
+          </div>
+          <div class="group segmented" id="scan-mode">
+            <button type="button" data-mode="document" aria-pressed="true" title="Papel blanco y texto oscuro, sin sombras">Documento</button>
+            <button type="button" data-mode="gray" aria-pressed="false">Gris</button>
+            <button type="button" data-mode="color" aria-pressed="false" title="Los colores de la foto">Color</button>
+          </div>
+        </div>
+        <div class="scan-stage">
+          <div id="scan-frame" class="scan-frame">
+            <img id="scan-img" alt="" />
+            <svg id="scan-outline" class="scan-outline" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <polygon points="" />
+            </svg>
+          </div>
+        </div>
+        <p id="scan-hint" class="hint">Arrastra las esquinas hasta los bordes de la hoja.</p>
+        <div class="sign-row scan-actions">
+          <button type="button" id="scan-rotate" title="Girar la página">Girar ↻</button>
+          <button type="button" id="scan-remove">Quitar página</button>
+        </div>
+        <div class="sign-row end">
+          <button value="cancel">Cancelar</button>
+          <button type="button" id="scan-save" class="primary">Guardar PDF…</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Long tasks: "Analizando página 3 de 15…" (progress.ts). -->
     <dialog id="progress-dialog" class="dialog narrow progress-dialog">
       <div class="dialog-body">
         <p id="progress-label"></p>

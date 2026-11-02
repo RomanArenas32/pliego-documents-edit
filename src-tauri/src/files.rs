@@ -50,6 +50,16 @@ pub async fn pick_pdf() -> Result<Option<String>, String> {
     Err("solo disponible en Android".into())
 }
 
+/// Takes a photo with the phone's camera app; returns the file (a temporary one in the app's
+/// cache), or `None` if the person went back without taking it.
+#[tauri::command]
+pub async fn take_photo() -> Result<Option<String>, String> {
+    #[cfg(target_os = "android")]
+    return android::take_photo();
+    #[cfg(not(target_os = "android"))]
+    Err("solo disponible en Android".into())
+}
+
 /// Sends the app to the background (Android back button with nothing left to close).
 #[tauri::command]
 pub async fn leave_app() -> Result<(), String> {
@@ -139,6 +149,20 @@ mod android {
             .run_mobile_plugin::<Picked>("pickPdf", ())
             .map_err(|e| format!("no se pudo abrir el selector: {e}"))?;
         Ok(picked.uri)
+    }
+
+    #[derive(Deserialize)]
+    struct Photo {
+        path: Option<String>,
+    }
+
+    pub fn take_photo() -> Result<Option<String>, String> {
+        let files = files()?;
+        let photo = files
+            .plugin
+            .run_mobile_plugin::<Photo>("takePhoto", ())
+            .map_err(|e| format!("no se pudo abrir la cámara: {e}"))?;
+        Ok(photo.path)
     }
 
     pub fn move_to_back() -> Result<(), String> {

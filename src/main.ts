@@ -610,7 +610,7 @@ function applyDoc(doc: DocInfo, opts: { dirty: boolean; page?: number }) {
 async function handleBack(): Promise<boolean> {
   const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
   if (dialog) {
-    // A task in progress can't be closed (see withProgress in tools.ts).
+    // A task in progress can't be closed (see progress.ts).
     if (dialog.id !== "progress-dialog") dialog.close();
     return true;
   }
