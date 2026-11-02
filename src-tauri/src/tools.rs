@@ -424,7 +424,14 @@ pub async fn images_to_pdf_command(paths: Vec<String>, output: String) -> Result
 /// Opens the system print dialog with what the window shows.
 #[tauri::command]
 pub async fn print_window(window: tauri::WebviewWindow) -> Result<(), String> {
-    window.print().map_err(err)
+    #[cfg(desktop)]
+    return window.print().map_err(err);
+    // Mobile webviews have no print dialog; the UI falls back to window.print().
+    #[cfg(mobile)]
+    {
+        let _ = window;
+        Err("imprimir no está disponible en este dispositivo".into())
+    }
 }
 
 #[cfg(test)]

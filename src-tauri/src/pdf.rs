@@ -138,6 +138,17 @@ pub fn init_pdfium(resource_dir: Option<PathBuf>) -> Result<(), String> {
     if PDFIUM.get().is_some() {
         return Ok(());
     }
+    // On Android the library ships inside the APK (jniLibs) and is loaded by name.
+    #[cfg(target_os = "android")]
+    {
+        let _ = resource_dir;
+        let lib = PathBuf::from("libpdfium.so");
+        let bindings = Pdfium::bind_to_library(&lib).map_err(|e| format!("libpdfium.so: {e}"))?;
+        crate::forms::set_library_path(lib);
+        let _ = PDFIUM.set(Pdfium::new(bindings));
+        return Ok(());
+    }
+    #[allow(unreachable_code)]
     let mut candidates: Vec<PathBuf> = Vec::new();
     if let Some(dir) = resource_dir {
         candidates.push(dir.join("pdfium"));
@@ -739,6 +750,10 @@ impl AppState {
     pub fn open_pdf(&self, path: String, password: Option<String>) -> Result<DocInfo, String> {
         // Loaded into memory so the same file can be overwritten when saving.
         let bytes = std::fs::read(&path).map_err(err)?;
+        self.open_pdf_bytes(bytes, path, password)
+    }
+
+    pub fn open_pdf_bytes(&self, bytes: Vec<u8>, path: String, password: Option<String>) -> Result<DocInfo, String> {
         let _pdfium = pdfium_lock();
         let open = OpenDoc {
             doc: load(bytes, password.as_deref())?,
@@ -1221,10 +1236,18 @@ fn add_drawing(
 
 #[tauri::command]
 pub async fn open_pdf(
+    app: tauri::AppHandle,
     path: String,
     password: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<DocInfo, String> {
+    // Android file pickers return content:// URIs, which only the fs plugin can read.
+    if path.starts_with("content://") {
+        use tauri_plugin_fs::FsExt;
+        let uri: tauri_plugin_fs::FilePath = path.parse().map_err(|e| format!("{e:?}"))?;
+        let bytes = app.fs().read(uri).map_err(err)?;
+        return state.open_pdf_bytes(bytes, path, password);
+    }
     state.open_pdf(path, password)
 }
 

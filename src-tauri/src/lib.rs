@@ -30,6 +30,7 @@ fn request_open(app: &AppHandle, paths: Vec<String>) {
         pending.extend(paths);
     }
     let _ = app.emit("open-files", ());
+    #[cfg(desktop)]
     if let Some(window) = app.get_webview_window("main") {
         let _ = window.unminimize();
         let _ = window.set_focus();
@@ -63,6 +64,7 @@ pub fn run() {
     }));
     builder
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .manage(PendingFiles::default())
         .manage(pdf::AppState {
             doc: Mutex::new(None),
