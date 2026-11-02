@@ -61,8 +61,8 @@ pub enum Output {
 
 #[derive(Serialize, Clone)]
 pub struct Progress {
-    done: usize,
-    total: usize,
+    pub(crate) done: usize,
+    pub(crate) total: usize,
 }
 
 #[derive(Serialize, Debug)]

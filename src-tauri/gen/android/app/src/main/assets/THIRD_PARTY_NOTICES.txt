@@ -2280,6 +2280,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ================================================================================
+Librerías de Android (solo en la versión para Android)
+================================================================================
+
+AndroidX (appcompat, activity, core, lifecycle, webkit) — https://developer.android.com/jetpack/androidx
+Material Components for Android — https://github.com/material-components/material-components-android
+Kotlin Standard Library — https://kotlinlang.org
+
+Copyright The Android Open Source Project, Google LLC y JetBrains s.r.o.
+Se distribuyen bajo la Apache License 2.0, cuyo texto completo aparece más abajo,
+en la sección de las librerías de Rust.
+
+================================================================================
 Licencias de las librerías de Rust incluidas en Pliego
 ==========================================================
 

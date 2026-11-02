@@ -13,8 +13,9 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use pdfium_render::prelude::*;
 use serde::Serialize;
 use tauri::ipc::Response;
-use tauri::State;
+use tauri::{AppHandle, Emitter, Manager, State};
 
+use crate::batch::Progress;
 use crate::pdf::{encode_png, err, get_page, load, rect_to_rel, render, AppState, DocInfo, OpenDoc, RelRect};
 
 /// Something that looks like a watermark: every object with the same `key` across the document.
@@ -94,6 +95,25 @@ fn signature(page: &PdfPage, object: &PdfPageObject) -> Option<Signature> {
     if covered > 0.6 && !likely {
         return None;
     }
+    // Anything that doesn't look like a watermark only counts if it's in the top or bottom
+    // margin (where headers, footers and logos go), so repeated phrases of the body aren't
+    // proposed. Checked before reading the text, which is slow (pdfium reads the whole page
+    // for each text object).
+    let zone = if likely {
+        None
+    } else {
+        let cy = (bounds.bottom().value + bounds.top().value) / 2.0 / page.height().value;
+        let zone = if cy > 1.0 - MARGIN {
+            "top"
+        } else if cy < MARGIN {
+            "bottom"
+        } else {
+            return None;
+        };
+        // Left, center or right third, so the same text in two places of the margin stays apart.
+        let third = ((bounds.left().value + bounds.right().value) / 2.0 / page.width().value * 3.0).floor();
+        Some(format!("{zone}{third}"))
+    };
     let (kind, label) = match object.object_type() {
         PdfPageObjectType::Text => {
             let t = object.as_text_object()?;
@@ -124,27 +144,12 @@ fn signature(page: &PdfPage, object: &PdfPageObject) -> Option<Signature> {
         // Lines and shapes repeat on every page (table borders, rules) and are rarely a watermark.
         _ => return None,
     };
-    if likely {
-        // Watermarks are grouped by content alone: they can shift a little between pages.
-        return Some(Signature { key: kind, label, likely });
-    }
-    // Anything else only counts if it's in the top or bottom margin (where headers, footers
-    // and logos go), so repeated phrases of the body aren't proposed.
-    let cy = (bounds.bottom().value + bounds.top().value) / 2.0 / page.height().value;
-    let zone = if cy > 1.0 - MARGIN {
-        "top"
-    } else if cy < MARGIN {
-        "bottom"
-    } else {
-        return None;
+    // Watermarks are grouped by content alone: they can shift a little between pages.
+    let key = match zone {
+        Some(zone) => format!("{kind}|{zone}"),
+        None => kind,
     };
-    // Left, center or right third, so the same text in two places of the margin stays apart.
-    let third = ((bounds.left().value + bounds.right().value) / 2.0 / page.width().value * 3.0).floor();
-    Some(Signature {
-        key: format!("{kind}|{zone}{third}"),
-        label,
-        likely,
-    })
+    Some(Signature { key, label, likely })
 }
 
 const ANNOTATION_KEY: &str = "a|watermark";
@@ -154,7 +159,8 @@ fn is_watermark_annotation(annotation: &PdfPageAnnotation) -> bool {
 }
 
 /// Watermark candidates of the whole document, the likeliest first.
-fn find(open: &OpenDoc) -> Result<Vec<WatermarkCandidate>, String> {
+/// `progress` is called after each page with (pages done, total).
+fn find(open: &OpenDoc, mut progress: impl FnMut(usize, usize)) -> Result<Vec<WatermarkCandidate>, String> {
     let total = open.doc.pages().len();
     // BTreeMap: same order every time for the same document.
     let mut found: BTreeMap<String, WatermarkCandidate> = BTreeMap::new();
@@ -185,6 +191,7 @@ fn find(open: &OpenDoc) -> Result<Vec<WatermarkCandidate>, String> {
                 add(ANNOTATION_KEY.into(), "Marca de agua (anotación)".into(), true, index, rect);
             }
         }
+        progress(index as usize + 1, total as usize);
     }
     let repeated = |c: &WatermarkCandidate| c.pages.len() >= 2 && c.pages.len() * 2 >= total as usize;
     let mut candidates: Vec<_> = found.into_values().filter(|c| c.likely || repeated(c)).collect();
@@ -230,19 +237,26 @@ fn remove_from_page(page: &mut PdfPage<'static>, keys: &HashSet<String>) -> Resu
 }
 
 impl AppState {
-    pub fn find_watermarks(&self) -> Result<Vec<WatermarkCandidate>, String> {
-        self.with_doc(|open| find(open))
+    pub fn find_watermarks(&self, progress: impl FnMut(usize, usize)) -> Result<Vec<WatermarkCandidate>, String> {
+        self.with_doc(|open| find(open, progress))
     }
 
-    pub fn remove_watermarks(&self, keys: Vec<String>) -> Result<DocInfo, String> {
+    /// `progress` is called after each page with (pages done, total).
+    pub fn remove_watermarks(
+        &self,
+        keys: Vec<String>,
+        mut progress: impl FnMut(usize, usize),
+    ) -> Result<DocInfo, String> {
         let keys: HashSet<String> = keys.into_iter().collect();
         if keys.is_empty() {
             return Err("elige al menos una marca de agua".into());
         }
         self.edit(|open| {
             let mut removed = 0;
-            for index in 0..open.doc.pages().len() {
+            let total = open.doc.pages().len();
+            for index in 0..total {
                 removed += remove_from_page(&mut get_page(open, index)?, &keys)?;
+                progress(index as usize + 1, total as usize);
             }
             if removed == 0 {
                 return Err("no se encontró la marca de agua (¿cambió el documento?)".into());
@@ -264,14 +278,29 @@ impl AppState {
     }
 }
 
+/// Tells the window how far the search or the removal is (it shows "page 3 of 15").
+fn report(app: &AppHandle, done: usize, total: usize) {
+    let _ = app.emit("watermark-progress", Progress { done, total });
+}
+
+// Off the async runtime: on a long document these take a while and would hold up other commands.
+
 #[tauri::command]
-pub async fn find_watermarks(state: State<'_, AppState>) -> Result<Vec<WatermarkCandidate>, String> {
-    state.find_watermarks()
+pub async fn find_watermarks(app: AppHandle) -> Result<Vec<WatermarkCandidate>, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<AppState>().find_watermarks(|done, total| report(&app, done, total))
+    })
+    .await
+    .map_err(err)?
 }
 
 #[tauri::command]
-pub async fn remove_watermarks(keys: Vec<String>, state: State<'_, AppState>) -> Result<DocInfo, String> {
-    state.remove_watermarks(keys)
+pub async fn remove_watermarks(keys: Vec<String>, app: AppHandle) -> Result<DocInfo, String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        app.state::<AppState>().remove_watermarks(keys, |done, total| report(&app, done, total))
+    })
+    .await
+    .map_err(err)?
 }
 
 #[tauri::command]
@@ -321,7 +350,7 @@ mod tests {
     #[test]
     fn finds_diagonal_and_repeated_objects() {
         let state = document();
-        let found = state.find_watermarks().unwrap();
+        let found = state.find_watermarks(|_, _| ()).unwrap();
         assert_eq!(found.len(), 2, "{found:?}");
         // The watermark comes first and is checked by default; the footer only repeats.
         assert_eq!(found[0].label, "«BORRADOR»");
@@ -336,32 +365,43 @@ mod tests {
     #[test]
     fn removes_only_the_chosen_watermark_and_can_be_undone() {
         let state = document();
-        let key = state.find_watermarks().unwrap().remove(0).key;
+        let key = state.find_watermarks(|_, _| ()).unwrap().remove(0).key;
 
         // The preview doesn't touch the document.
         let png = state.preview_watermarks(vec![key.clone()], 0, 300).unwrap();
         assert!(png.starts_with(b"\x89PNG"));
         assert!(page_text(&state, 0).contains("BORRADOR"));
 
-        state.remove_watermarks(vec![key.clone()]).unwrap();
+        state.remove_watermarks(vec![key.clone()], |_, _| ()).unwrap();
         for index in 0..3 {
             let text = page_text(&state, index);
             assert!(!text.contains("BORRADOR"), "{text}");
             assert!(text.contains("página") && text.contains("Empresa"), "{text}");
         }
-        assert_eq!(state.find_watermarks().unwrap().len(), 1);
+        assert_eq!(state.find_watermarks(|_, _| ()).unwrap().len(), 1);
         // Nothing left to remove with the same key.
-        assert!(state.remove_watermarks(vec![key]).is_err());
+        assert!(state.remove_watermarks(vec![key], |_, _| ()).is_err());
 
         state.undo().unwrap();
         assert!(page_text(&state, 1).contains("BORRADOR"));
     }
 
     #[test]
+    fn reports_progress_page_by_page() {
+        let state = document();
+        let mut seen = Vec::new();
+        let key = state.find_watermarks(|done, total| seen.push((done, total))).unwrap().remove(0).key;
+        assert_eq!(seen, vec![(1, 3), (2, 3), (3, 3)]);
+        seen.clear();
+        state.remove_watermarks(vec![key], |done, total| seen.push((done, total))).unwrap();
+        assert_eq!(seen.last(), Some(&(3, 3)));
+    }
+
+    #[test]
     fn repeated_body_text_is_not_proposed() {
         // The third line is in the body (outside the top margin) on every page.
         let state = state_with_lines(&[&["A1", "B1", "Ver anexo."], &["A2", "B2", "Ver anexo."], &["A3", "B3", "Ver anexo."]]);
-        let found = state.find_watermarks().unwrap();
+        let found = state.find_watermarks(|_, _| ()).unwrap();
         assert!(found.iter().all(|c| !c.label.contains("anexo")), "{found:?}");
     }
 
@@ -379,7 +419,7 @@ mod tests {
                 page.regenerate_content().map_err(err)
             })
             .unwrap();
-        let found = state.find_watermarks().unwrap();
+        let found = state.find_watermarks(|_, _| ()).unwrap();
         assert_eq!(found.len(), 1, "{found:?}");
         assert!(found[0].likely && found[0].label == "«BORRADOR»");
     }
@@ -387,6 +427,7 @@ mod tests {
     #[test]
     fn a_single_plain_page_has_no_candidates() {
         let state = state_with_lines(&[&["Hola", "Chau"]]);
-        assert!(state.find_watermarks().unwrap().is_empty());
+        assert!(state.find_watermarks(|_, _| ()).unwrap().is_empty());
     }
 }
+

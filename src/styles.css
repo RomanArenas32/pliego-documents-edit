@@ -964,6 +964,14 @@ body.working {
   cursor: progress;
 }
 
+.progress-dialog p {
+  margin: 0 0 8px;
+}
+
+.progress-dialog progress {
+  width: 100%;
+}
+
 /* ---------- Phone layout (Android, see mobile.ts) ---------- */
 
 .mobile {

@@ -6,6 +6,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { open, save } from "@tauri-apps/plugin-dialog";
 
 export interface ToolsContext {
@@ -192,6 +193,37 @@ async function run<T>(working: string, task: () => Promise<T>): Promise<{ value:
   }
 }
 
+/**
+ * Runs a long command showing "<label> página 3 de 15…" and a bar, from the `event` the
+ * command emits after each page. Shown after a moment, so quick runs don't flash it.
+ */
+async function withProgress<T>(event: string, label: string, task: () => Promise<T>): Promise<T> {
+  const dialog = $<HTMLDialogElement>("progress-dialog");
+  const text = $("progress-label");
+  const bar = $<HTMLProgressElement>("progress-bar");
+  text.textContent = `${label}…`;
+  bar.removeAttribute("value");
+  // It can't be closed: the task keeps running anyway.
+  const keepOpen = (e: Event) => e.preventDefault();
+  dialog.addEventListener("cancel", keepOpen);
+  const timer = window.setTimeout(() => dialog.showModal(), 300);
+  const unlisten = await listen<{ done: number; total: number }>(event, ({ payload }) => {
+    text.textContent = `${label} página ${payload.done} de ${payload.total}…`;
+    bar.max = payload.total;
+    bar.value = payload.done;
+  });
+  document.body.classList.add("working");
+  try {
+    return await task();
+  } finally {
+    clearTimeout(timer);
+    unlisten();
+    dialog.removeEventListener("cancel", keepOpen);
+    if (dialog.open) dialog.close();
+    document.body.classList.remove("working");
+  }
+}
+
 async function extractPages() {
   const doc = ctx.doc()!;
   const count = doc.pages.length;
@@ -345,9 +377,15 @@ interface WatermarkCandidate {
 const WATERMARK_PREVIEW_WIDTH = 600;
 
 async function removeWatermarks() {
-  const found = await run("Buscando marcas de agua…", () => invoke<WatermarkCandidate[]>("find_watermarks"));
-  if (!found) return;
-  const candidates = found.value;
+  let candidates: WatermarkCandidate[];
+  try {
+    candidates = await withProgress("watermark-progress", "Analizando", () =>
+      invoke<WatermarkCandidate[]>("find_watermarks"),
+    );
+  } catch (e) {
+    ctx.error(e);
+    return;
+  }
   if (candidates.length === 0) {
     ctx.info(
       "No se encontraron marcas de agua. Si la marca es parte de una página escaneada (una foto), no se puede quitar.",
@@ -458,7 +496,10 @@ async function removeWatermarks() {
   if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
   img.removeAttribute("src");
   if (!keys?.length) return;
-  if (await ctx.edit("remove_watermarks", { keys })) {
+  const removed = await withProgress("watermark-progress", "Quitando marcas de agua:", () =>
+    ctx.edit("remove_watermarks", { keys }),
+  );
+  if (removed) {
     ctx.info(keys.length === 1 ? "Listo: se quitó la marca de agua." : `Listo: se quitaron ${keys.length} marcas de agua.`);
   }
 }

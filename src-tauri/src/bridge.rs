@@ -143,8 +143,8 @@ fn call(state: &AppState, cmd: &str, args: Value) -> Result<Reply, String> {
             images_to_pdf(paths: Vec<String>, output: String) => crate::tools::images_to_pdf(paths, output),
             redact(areas: Vec<crate::redact::RedactArea>) => state.redact(areas),
             export_word(path: String) => state.export_word(path),
-            find_watermarks() => state.find_watermarks(),
-            remove_watermarks(keys: Vec<String>) => state.remove_watermarks(keys),
+            find_watermarks() => state.find_watermarks(|_, _| ()),
+            remove_watermarks(keys: Vec<String>) => state.remove_watermarks(keys, |_, _| ()),
             take_pending_files() => Ok::<Vec<String>, String>(Vec::new()),
             add_image(index: Page, source: crate::images::ImageSource, center: P, width: f32) =>
                 state.add_image(index, source, center, width),

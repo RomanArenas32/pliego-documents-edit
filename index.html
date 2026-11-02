@@ -244,6 +244,14 @@
       </form>
     </dialog>
 
+    <!-- Long tasks: "Analizando página 3 de 15…" (tools.ts, withProgress). -->
+    <dialog id="progress-dialog" class="dialog narrow progress-dialog">
+      <div class="dialog-body">
+        <p id="progress-label"></p>
+        <progress id="progress-bar" value="0" max="1"></progress>
+      </div>
+    </dialog>
+
     <div id="toast" class="toast" hidden></div>
   </body>
 </html>
