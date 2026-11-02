@@ -2,8 +2,8 @@
 
 <h1 align="center">Pliego</h1>
 
-<p align="center">Editor de PDF gratuito y de código abierto para Windows y macOS.<br>
-Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
+<p align="center">Editor de PDF gratuito y de código abierto para Windows, macOS y Android.<br>
+Funciona sin internet: tus documentos nunca salen de tu dispositivo.</p>
 
 <p align="center">
   <a href="https://romanarenas32.github.io/pliego-documents-edit/"><b>Sitio web</b></a> ·
@@ -37,13 +37,23 @@ Requisitos: [Rust](https://rustup.rs), [Node.js](https://nodejs.org) 22 y [pnpm]
 3. Abrir la app en modo desarrollo: `pnpm tauri dev`
 4. Pruebas: `cd src-tauri && cargo test`
 
+### Android
+
+Requisitos adicionales: [Android Studio](https://developer.android.com/studio) con el NDK, y los
+targets de Rust (`rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android`).
+
+1. Descargar pdfium para Android: `./scripts/fetch-pdfium-android.sh`
+2. Probar en un emulador o celular conectado: `pnpm tauri android dev`
+3. Compilar el APK y el AAB: `pnpm tauri android build`. Para que salgan firmados hace falta la
+   clave de firma; ver [scripts/android-signing.md](scripts/android-signing.md).
+
 Tecnologías: [Tauri 2](https://tauri.app), Rust, TypeScript y [PDFium](https://pdfium.googlesource.com/pdfium).
 
 ## Publicar una versión
 
 1. Subir el número de versión en `package.json`, `src-tauri/Cargo.toml` y `src-tauri/tauri.conf.json`.
 2. Crear y subir la etiqueta: `git tag v0.2.0 && git push --tags`.
-3. GitHub Actions compila los instaladores y los publica en
+3. GitHub Actions compila los instaladores (Windows, macOS y Android) y los publica en
    [Releases](https://github.com/RomanArenas32/pliego-documents-edit/releases). Los botones de la web
    apuntan siempre a la última versión.
 

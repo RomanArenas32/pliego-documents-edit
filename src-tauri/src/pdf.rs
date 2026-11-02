@@ -24,6 +24,8 @@ pub(crate) const REF_WIDTH: Pixels = 10_000;
 pub struct OpenDoc {
     pub(crate) doc: PdfDocument<'static>,
     pub(crate) path: PathBuf,
+    /// Name shown to the user (on Android `path` can be an opaque content:// URI).
+    pub(crate) name: String,
     history: History,
     /// Password the document was opened with (needed to reload the copies).
     pub(crate) password: Option<String>,
@@ -60,6 +62,7 @@ pub struct PageSize {
 #[serde(rename_all = "camelCase")]
 pub struct DocInfo {
     path: String,
+    name: String,
     pages: Vec<PageSize>,
     can_undo: bool,
     can_redo: bool,
@@ -214,6 +217,7 @@ pub(crate) fn doc_info(open: &OpenDoc) -> DocInfo {
         .collect();
     DocInfo {
         path: open.path.to_string_lossy().into_owned(),
+        name: open.name.clone(),
         pages,
         can_undo: open.history.can_undo(),
         can_redo: open.history.can_redo(),
@@ -749,15 +753,13 @@ impl AppState {
 
     pub fn open_pdf(&self, path: String, password: Option<String>) -> Result<DocInfo, String> {
         // Loaded into memory so the same file can be overwritten when saving.
-        let bytes = std::fs::read(&path).map_err(err)?;
-        self.open_pdf_bytes(bytes, path, password)
-    }
-
-    pub fn open_pdf_bytes(&self, bytes: Vec<u8>, path: String, password: Option<String>) -> Result<DocInfo, String> {
+        let bytes = crate::files::read(&path)?;
+        let name = crate::files::display_name(&path);
         let _pdfium = pdfium_lock();
         let open = OpenDoc {
             doc: load(bytes, password.as_deref())?,
             path: PathBuf::from(path),
+            name,
             history: History::default(),
             password,
         };
@@ -769,10 +771,11 @@ impl AppState {
     /// Saves the document. Without `path`, overwrites the original file.
     pub fn save_pdf(&self, path: Option<String>) -> Result<DocInfo, String> {
         self.with_doc(|open| {
-            let target = path.map(PathBuf::from).unwrap_or_else(|| open.path.clone());
+            let target = path.unwrap_or_else(|| open.path.to_string_lossy().into_owned());
             let bytes = open.doc.save_to_bytes().map_err(err)?;
-            std::fs::write(&target, bytes).map_err(err)?;
-            open.path = target;
+            crate::files::write(&target, &bytes)?;
+            open.name = crate::files::display_name(&target);
+            open.path = PathBuf::from(target);
             Ok(doc_info(open))
         })
     }
@@ -861,7 +864,7 @@ impl AppState {
 
     /// Inserts all the pages of another PDF at position `at`.
     pub fn insert_pdf(&self, path: String, at: PdfPageIndex) -> Result<DocInfo, String> {
-        let bytes = std::fs::read(&path).map_err(err)?;
+        let bytes = crate::files::read(&path)?;
         self.edit(|open| {
             let other = load(bytes, None)?;
             let count = other.pages().len();
@@ -1236,18 +1239,10 @@ fn add_drawing(
 
 #[tauri::command]
 pub async fn open_pdf(
-    app: tauri::AppHandle,
     path: String,
     password: Option<String>,
     state: State<'_, AppState>,
 ) -> Result<DocInfo, String> {
-    // Android file pickers return content:// URIs, which only the fs plugin can read.
-    if path.starts_with("content://") {
-        use tauri_plugin_fs::FsExt;
-        let uri: tauri_plugin_fs::FilePath = path.parse().map_err(|e| format!("{e:?}"))?;
-        let bytes = app.fs().read(uri).map_err(err)?;
-        return state.open_pdf_bytes(bytes, path, password);
-    }
     state.open_pdf(path, password)
 }
 
@@ -1495,6 +1490,7 @@ pub(crate) mod tests {
             doc: Mutex::new(Some(OpenDoc {
                 doc,
                 path: PathBuf::new(),
+                name: String::new(),
                 history: History::default(),
                 password: None,
             })),

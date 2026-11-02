@@ -35,6 +35,9 @@ fn font_dirs() -> Vec<PathBuf> {
     if cfg!(target_os = "macos") {
         dirs.extend(["/System/Library/Fonts", "/Library/Fonts"].map(PathBuf::from));
         dirs.extend(home.map(|h| h.join("Library/Fonts")));
+    } else if cfg!(target_os = "android") {
+        // Apps can read the system fonts (Roboto, Noto…) but have no user font folder.
+        dirs.push(PathBuf::from("/system/fonts"));
     } else if cfg!(windows) {
         let windir = std::env::var_os("WINDIR").map(PathBuf::from).unwrap_or_else(|| "C:\\Windows".into());
         dirs.push(windir.join("Fonts"));

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title data-i18n="title">Pliego — Editor de PDF gratuito</title>
-  <meta name="description" data-i18n-content="description" content="Edita, firma, rellena, combina y protege PDFs gratis y sin conexión. Tus archivos nunca salen de tu computadora. Para Windows y macOS.">
+  <meta name="description" data-i18n-content="description" content="Edita, firma, rellena, combina y protege PDFs gratis y sin conexión. Tus archivos nunca salen de tu dispositivo. Para Windows, macOS y Android.">
   <meta property="og:title" content="Pliego — Editor de PDF gratuito">
   <meta property="og:description" content="Edita, firma, rellena y protege PDFs sin conexión. Gratis y de código abierto.">
   <meta property="og:image" content="captura.png">
@@ -157,7 +157,7 @@
 
     <div class="hero">
       <h1 data-i18n="hero.title">Edita tus PDF.<br>Sin subirlos a ningún lado.</h1>
-      <p class="lead" data-i18n="hero.lead">Un editor de PDF completo, gratis y de código abierto. Funciona sin internet: tus documentos nunca salen de tu computadora.</p>
+      <p class="lead" data-i18n="hero.lead">Un editor de PDF completo, gratis y de código abierto. Funciona sin internet: tus documentos nunca salen de tu dispositivo.</p>
       <div class="badges">
         <span class="badge" data-i18n="badge.free">Gratis</span>
         <span class="badge" data-i18n="badge.ads">Sin publicidad</span>
@@ -170,6 +170,9 @@
         </a>
         <a class="btn" id="dl-mac" href="https://github.com/RomanArenas32/pliego-documents-edit/releases/latest/download/Pliego-macOS.dmg">
           <span data-i18n="dl.mac">Descargar para macOS</span><small data-i18n="dl.macNote">Apple Silicon e Intel</small>
+        </a>
+        <a class="btn" id="dl-android" href="https://github.com/RomanArenas32/pliego-documents-edit/releases/latest/download/Pliego-Android.apk">
+          <span data-i18n="dl.android">Descargar para Android</span><small data-i18n="dl.androidNote">Android 7 o superior</small>
         </a>
       </div>
       <p class="note" data-i18n="dl.note">¿Primera vez? Mira <a href="#instalar">cómo instalarlo</a>. Todas las versiones están en <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases">GitHub</a>.</p>
@@ -185,7 +188,7 @@
       <div class="privacy">
         <div>
           <h3 data-i18n="why.local.title">Tus archivos se quedan contigo</h3>
-          <p data-i18n="why.local.text">Las páginas web de PDF suben tus documentos a sus servidores. Pliego los procesa en tu computadora.</p>
+          <p data-i18n="why.local.text">Las páginas web de PDF suben tus documentos a sus servidores. Pliego los procesa en tu computadora o en tu celular.</p>
         </div>
         <div>
           <h3 data-i18n="why.offline.title">Funciona sin internet</h3>
@@ -220,7 +223,7 @@
   <section id="instalar">
     <div class="wrap">
       <h2 data-i18n="install.title">Cómo instalarlo</h2>
-      <p class="sub" data-i18n="install.sub">Como es un proyecto gratuito, todavía no tiene certificado de firma pago. Por eso tu sistema muestra un aviso la primera vez. Es normal y pasa una sola vez.</p>
+      <p class="sub" data-i18n="install.sub">Como es un proyecto gratuito, todavía no tiene certificado de firma pago ni está en las tiendas de apps. Por eso tu sistema muestra un aviso la primera vez. Es normal y pasa una sola vez.</p>
       <div class="steps">
         <div class="card">
           <h3>Windows</h3>
@@ -238,6 +241,14 @@
             <li data-i18n="install.mac3">Ve a <strong>Ajustes del Sistema → Privacidad y seguridad</strong>, baja hasta el final y haz clic en <strong>Abrir igualmente</strong>.</li>
           </ol>
         </div>
+        <div class="card">
+          <h3>Android</h3>
+          <ol>
+            <li data-i18n="install.android1">Desde el celular, descarga <strong>Pliego-Android.apk</strong>. Si el navegador avisa que el archivo puede ser dañino, toca <strong>Descargar de todas formas</strong>.</li>
+            <li data-i18n="install.android2">Ábrelo. La primera vez, Android pide permiso para que el navegador instale apps: toca <strong>Configuración</strong>, activa <strong>Permitir de esta fuente</strong> y vuelve.</li>
+            <li data-i18n="install.android3">Toca <strong>Instalar</strong>. Si aparece un aviso de Play Protect, toca <strong>Más detalles</strong> y luego <strong>Instalar de todas formas</strong>.</li>
+          </ol>
+        </div>
       </div>
     </div>
   </section>
@@ -251,11 +262,11 @@
       </details>
       <details>
         <summary data-i18n="faq.upload.q">¿Mis documentos se suben a internet?</summary>
-        <p data-i18n="faq.upload.a">No. Todo se procesa en tu computadora. La app no envía tus archivos a ningún servidor.</p>
+        <p data-i18n="faq.upload.a">No. Todo se procesa en tu computadora o en tu celular. La app no envía tus archivos a ningún servidor.</p>
       </details>
       <details>
         <summary data-i18n="faq.trust.q">¿Por qué mi sistema dice que la app no es de confianza?</summary>
-        <p data-i18n="faq.trust.a">Windows y macOS muestran ese aviso con las apps que no tienen un certificado de firma, que cuesta dinero cada año. El código está publicado en GitHub para que cualquiera pueda revisarlo.</p>
+        <p data-i18n="faq.trust.a">Windows, macOS y Android muestran ese aviso con las apps que no tienen un certificado de firma pago o que no vienen de su tienda de apps. El código está publicado en GitHub para que cualquiera pueda revisarlo.</p>
       </details>
       <details>
         <summary data-i18n="faq.scan.q">¿Puedo abrir PDFs escaneados?</summary>
@@ -263,7 +274,11 @@
       </details>
       <details>
         <summary data-i18n="faq.open.q">¿Puedo abrir un PDF con doble clic?</summary>
-        <p data-i18n="faq.open.a">Sí. Haz clic derecho en un PDF, elige «Abrir con» y selecciona Pliego. Puedes marcarlo como app predeterminada.</p>
+        <p data-i18n="faq.open.a">Sí. Haz clic derecho en un PDF, elige «Abrir con» y selecciona Pliego. Puedes marcarlo como app predeterminada. En Android, toca un PDF en la app Archivos o en un correo y elige Pliego.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.android.q">¿La versión de Android tiene las mismas funciones?</summary>
+        <p data-i18n="faq.android.a">Casi todas: puedes editar texto, firmar, anotar, rellenar formularios, organizar páginas, combinar y proteger. Imprimir, generar documentos en serie, dividir y exportar a imágenes por ahora solo están en Windows y macOS.</p>
       </details>
       <details>
         <summary data-i18n="faq.bug.q">Encontré un error o tengo una idea, ¿dónde lo cuento?</summary>
@@ -275,14 +290,20 @@
   <footer>
     <div class="wrap">
       Pliego · © 2026 <a href="https://www.veczail.com">Veczail Company</a> ·
-      <span data-i18n="footer.license">Licencia</span> <a href="https://github.com/RomanArenas32/pliego-documents-edit/blob/main/LICENSE">GPL-3.0</a>
+      <span data-i18n="footer.license">Licencia</span> <a href="https://github.com/RomanArenas32/pliego-documents-edit/blob/main/LICENSE">GPL-3.0</a> ·
+      <a href="privacidad.html" data-i18n="footer.privacy">Privacidad</a>
     </div>
   </footer>
 
   <script>
     // Highlights the download for the visitor's system.
     const ua = navigator.userAgent;
-    const id = /Mac/.test(ua) ? "dl-mac" : /Windows/.test(ua) ? "dl-windows" : null;
+    // Android before the rest (its user agent says "Linux"); iPhones say "Mac OS X" but can't install either.
+    const id = /Android/.test(ua) ? "dl-android"
+      : /iPhone|iPad|iPod/.test(ua) ? null
+      : /Mac/.test(ua) ? "dl-mac"
+      : /Windows/.test(ua) ? "dl-windows"
+      : null;
     if (id) {
       const btn = document.getElementById(id);
       btn.classList.add("primary");
@@ -293,12 +314,12 @@
     // data-i18n attributes. The Spanish originals are kept so switching back restores them.
     const EN = {
       "title": "Pliego — Free PDF editor",
-      "description": "Edit, sign, fill, merge and protect PDFs for free and offline. Your files never leave your computer. For Windows and macOS.",
+      "description": "Edit, sign, fill, merge and protect PDFs for free and offline. Your files never leave your device. For Windows, macOS and Android.",
       "nav.features": "Features",
       "nav.install": "Install",
       "nav.faq": "FAQ",
       "hero.title": "Edit your PDFs.<br>Without uploading them anywhere.",
-      "hero.lead": "A complete PDF editor, free and open source. It works offline: your documents never leave your computer.",
+      "hero.lead": "A complete PDF editor, free and open source. It works offline: your documents never leave your device.",
       "badge.free": "Free",
       "badge.ads": "No ads",
       "badge.account": "No account",
@@ -307,10 +328,12 @@
       "dl.windowsNote": "Windows 10 and 11 · 64-bit",
       "dl.mac": "Download for macOS",
       "dl.macNote": "Apple Silicon and Intel",
+      "dl.android": "Download for Android",
+      "dl.androidNote": "Android 7 or later",
       "dl.note": 'First time? See <a href="#instalar">how to install it</a>. All versions are on <a href="https://github.com/RomanArenas32/pliego-documents-edit/releases">GitHub</a>.',
       "shot.alt": "Pliego with a proposal open and a sentence highlighted in yellow",
       "why.local.title": "Your files stay with you",
-      "why.local.text": "PDF websites upload your documents to their servers. Pliego processes them on your computer.",
+      "why.local.text": "PDF websites upload your documents to their servers. Pliego processes them on your computer or your phone.",
       "why.offline.title": "Works offline",
       "why.offline.text": "On a plane, at an office without network or with private data: no connection needed.",
       "why.limits.title": "No limits or watermarks",
@@ -345,27 +368,33 @@
       "f.batch.title": "Generate hundreds of documents",
       "f.batch.text": "Certificates, letters or labels from an Excel or CSV spreadsheet, QR codes included.",
       "install.title": "How to install it",
-      "install.sub": "As a free project, it doesn't have a paid signing certificate yet. That's why your system shows a warning the first time. It's normal and only happens once.",
+      "install.sub": "As a free project, it doesn't have a paid signing certificate yet and isn't in the app stores. That's why your system shows a warning the first time. It's normal and only happens once.",
       "install.win1": "Download <strong>Pliego-Windows.exe</strong> and open it.",
       "install.win2": "If “Windows protected your PC” appears, click <strong>More info</strong> and then <strong>Run anyway</strong>.",
       "install.win3": "Follow the installer. Pliego will be in the Start menu.",
       "install.mac1": "Download <strong>Pliego-macOS.dmg</strong>, open it and drag Pliego to <strong>Applications</strong>.",
       "install.mac2": "Open the app. If macOS says it couldn't verify it, click <strong>Done</strong> (not “Move to Trash”).",
       "install.mac3": "Go to <strong>System Settings → Privacy &amp; Security</strong>, scroll to the bottom and click <strong>Open Anyway</strong>.",
+      "install.android1": "On your phone, download <strong>Pliego-Android.apk</strong>. If the browser warns that the file may be harmful, tap <strong>Download anyway</strong>.",
+      "install.android2": "Open it. The first time, Android asks to let the browser install apps: tap <strong>Settings</strong>, turn on <strong>Allow from this source</strong> and go back.",
+      "install.android3": "Tap <strong>Install</strong>. If a Play Protect warning appears, tap <strong>More details</strong> and then <strong>Install anyway</strong>.",
       "faq.title": "Frequently asked questions",
       "faq.free.q": "Is it really free?",
       "faq.free.a": "Yes. All its features are free, with no subscription, ads or watermarks. The code is open source under the GPL-3.0 license.",
       "faq.upload.q": "Are my documents uploaded to the internet?",
-      "faq.upload.a": "No. Everything is processed on your computer. The app doesn't send your files to any server.",
+      "faq.upload.a": "No. Everything is processed on your computer or your phone. The app doesn't send your files to any server.",
       "faq.trust.q": "Why does my system say the app isn't trusted?",
-      "faq.trust.a": "Windows and macOS show that warning for apps without a signing certificate, which costs money every year. The code is published on GitHub so anyone can review it.",
+      "faq.trust.a": "Windows, macOS and Android show that warning for apps without a paid signing certificate or that don't come from their app store. The code is published on GitHub so anyone can review it.",
       "faq.scan.q": "Can I open scanned PDFs?",
       "faq.scan.a": "Yes, you can view, annotate, sign and organize them. What it can't do yet is recognize the text in a scanned image (OCR).",
       "faq.open.q": "Can I open a PDF with a double click?",
-      "faq.open.a": "Yes. Right-click a PDF, choose “Open with” and select Pliego. You can set it as the default app.",
+      "faq.open.a": "Yes. Right-click a PDF, choose “Open with” and select Pliego. You can set it as the default app. On Android, tap a PDF in the Files app or in an email and choose Pliego.",
+      "faq.android.q": "Does the Android version have the same features?",
+      "faq.android.a": "Almost all of them: you can edit text, sign, annotate, fill in forms, organize pages, merge and protect. Printing, batch generation, splitting and exporting to images are only on Windows and macOS for now.",
       "faq.bug.q": "I found a bug or have an idea, where do I report it?",
       "faq.bug.a": 'In the <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">GitHub Issues</a> section. If you know how to code, you can also propose changes.',
       "footer.license": "License",
+      "footer.privacy": "Privacy",
     };
 
     const original = new Map();

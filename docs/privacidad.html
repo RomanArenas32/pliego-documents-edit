@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pliego — Privacidad</title>
+  <meta name="description" content="Política de privacidad de Pliego, el editor de PDF gratuito y de código abierto.">
+  <link rel="icon" href="icon.png">
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --surface: #ffffff;
+      --text: #172033;
+      --muted: #5b6577;
+      --border: #e2e6ee;
+      --accent: #2f6fe4;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #11141a;
+        --surface: #191d25;
+        --text: #e8ebf1;
+        --muted: #9aa3b3;
+        --border: #2a303b;
+        --accent: #5b93f5;
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #11141a;
+      --surface: #191d25;
+      --text: #e8ebf1;
+      --muted: #9aa3b3;
+      --border: #2a303b;
+      --accent: #5b93f5;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    .brand img { width: 34px; height: 34px; }
+    h1 { font-size: clamp(28px, 5vw, 38px); line-height: 1.15; margin: 36px 0 4px; letter-spacing: -0.01em; }
+    h2 { font-size: 20px; margin: 32px 0 6px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    a { color: var(--accent); }
+    .date { margin: 0 0 24px; font-size: 14px; }
+    hr { border: 0; border-top: 1px solid var(--border); margin: 48px 0 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="brand" href="./"><img src="icon.png" alt="">Pliego</a>
+
+    <h1>Política de privacidad</h1>
+    <p class="date">Última actualización: 1 de noviembre de 2026</p>
+
+    <p>Pliego es un editor de PDF de código abierto de Veczail Company, para Windows, macOS y Android.
+    Esta política explica qué hace la app con tus datos. La respuesta corta: <strong>nada sale de tu dispositivo</strong>.</p>
+
+    <h2>Tus documentos</h2>
+    <p>Los PDF, imágenes, firmas y planillas que abres en Pliego se procesan solo en tu dispositivo.
+    La app no los sube a ningún servidor y no necesita internet para funcionar.</p>
+
+    <h2>Datos que no recopilamos</h2>
+    <p>Pliego no tiene cuentas ni inicio de sesión, no muestra publicidad y no incluye herramientas de
+    análisis, rastreo ni informes de errores automáticos. No recopilamos, guardamos, vendemos ni
+    compartimos datos personales.</p>
+
+    <h2>Lo que se guarda en tu dispositivo</h2>
+    <p>Las firmas que eliges «Guardar para la próxima vez» quedan guardadas en tu dispositivo, dentro
+    de la app. Las borras al desinstalarla o al borrar los datos de la app.</p>
+
+    <h2>Permisos en Android</h2>
+    <p>Pliego solo accede a los archivos que eliges al abrir o guardar, o a los que compartes con la
+    app desde otra. No pide acceso a tus contactos, ubicación, cámara ni micrófono.</p>
+
+    <h2>Cambios y contacto</h2>
+    <p>Si esta política cambia, publicaremos la versión nueva en esta página. Para consultas, abre un
+    tema en <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">GitHub</a>.
+    El código de la app es público y cualquiera puede revisarlo.</p>
+
+    <hr>
+
+    <h1 lang="en">Privacy policy</h1>
+    <div lang="en">
+      <p>Pliego is an open source PDF editor by Veczail Company, for Windows, macOS and Android.
+      <strong>Nothing leaves your device.</strong> Your documents, images, signatures and spreadsheets
+      are processed only on your device; the app doesn't upload them and works offline.</p>
+      <p>Pliego has no accounts, ads, analytics, tracking or automatic crash reports. We don't collect,
+      store, sell or share personal data. Signatures you choose to save are stored on your device and
+      are removed when you uninstall the app or clear its data.</p>
+      <p>On Android, Pliego only accesses the files you choose to open or save, or share with it from
+      another app. Questions: <a href="https://github.com/RomanArenas32/pliego-documents-edit/issues">GitHub Issues</a>.</p>
+    </div>
+  </main>
+</body>
+</html>

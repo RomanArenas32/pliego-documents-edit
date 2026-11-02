@@ -84,7 +84,7 @@ fn pages_to_bytes(source: &PdfDocument<'static>, pages: &[PdfPageIndex]) -> Resu
 }
 
 fn write(path: &Path, bytes: &[u8]) -> Result<(), String> {
-    std::fs::write(path, bytes).map_err(|e| format!("no se pudo guardar {}: {e}", path.display()))
+    crate::files::write(&path.to_string_lossy(), bytes)
 }
 
 impl AppState {
@@ -190,7 +190,7 @@ pub fn images_to_pdf(paths: Vec<String>, output: String) -> Result<(), String> {
     let _guard = pdfium_lock();
     let mut doc = pdfium()?.create_new_pdf().map_err(err)?;
     for path in &paths {
-        let bytes = std::fs::read(path).map_err(|e| format!("{path}: {e}"))?;
+        let bytes = crate::files::read(path)?;
         let picture = upright(bytes).map_err(|e| format!("{}: {e}", file_name(path)))?;
         let (w, h) = picture.size();
         let (page_w, page_h) = if w > h { (A4.1, A4.0) } else { A4 };

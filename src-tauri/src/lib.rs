@@ -1,4 +1,5 @@
 mod batch;
+mod files;
 #[cfg(feature = "bridge")]
 pub mod bridge;
 mod fonts;
@@ -22,7 +23,10 @@ use tauri::{AppHandle, Emitter, Manager};
 struct PendingFiles(Mutex<Vec<String>>);
 
 fn request_open(app: &AppHandle, paths: Vec<String>) {
-    let paths: Vec<String> = paths.into_iter().filter(|p| p.to_lowercase().ends_with(".pdf")).collect();
+    let paths: Vec<String> = paths
+        .into_iter()
+        .filter(|p| p.to_lowercase().ends_with(".pdf") || files::is_uri(p))
+        .collect();
     if paths.is_empty() {
         return;
     }
@@ -65,6 +69,7 @@ pub fn run() {
     builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
+        .plugin(files::plugin())
         .manage(PendingFiles::default())
         .manage(pdf::AppState {
             doc: Mutex::new(None),
@@ -79,6 +84,8 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             take_pending_files,
+            files::pick_pdf,
+            files::leave_app,
             pdf::open_pdf,
             pdf::save_pdf,
             pdf::render_page,
@@ -130,10 +137,14 @@ pub fn run() {
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(|_app, _event| {
-            // On macOS files arrive as an event (double click or dropping on the icon).
-            #[cfg(any(target_os = "macos", target_os = "ios"))]
+            // On macOS files arrive as an event (double click or dropping on the icon);
+            // on Android too ("Open with" and "Share"), as content:// URIs.
+            #[cfg(any(target_os = "macos", target_os = "ios", target_os = "android"))]
             if let tauri::RunEvent::Opened { urls } = _event {
-                let paths = urls.iter().filter_map(|u| u.to_file_path().ok()).map(|p| p.to_string_lossy().into_owned());
+                let paths = urls.iter().filter_map(|u| match u.scheme() {
+                    "content" => Some(u.to_string()),
+                    _ => u.to_file_path().ok().map(|p| p.to_string_lossy().into_owned()),
+                });
                 request_open(_app, paths.collect());
             }
         });

@@ -87,7 +87,7 @@ pub fn read_table(path: &Path) -> Result<Table, String> {
         .to_lowercase();
     let mut rows = match ext.as_str() {
         "xlsx" | "xlsm" | "xlsb" | "xls" | "ods" => read_spreadsheet(path)?,
-        _ => read_csv(&std::fs::read(path).map_err(err)?)?,
+        _ => read_csv(&crate::files::read(&path.to_string_lossy())?)?,
     };
     rows.retain(|r| r.iter().any(|c| !c.trim().is_empty()));
     if rows.is_empty() {

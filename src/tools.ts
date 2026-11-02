@@ -9,7 +9,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 
 export interface ToolsContext {
-  doc(): { path: string; pages: { width: number; height: number }[] } | null;
+  doc(): { path: string; name: string; pages: { width: number; height: number }[] } | null;
   current(): number;
   /** Opens a PDF (asks first if there are unsaved changes). */
   openPdf(path: string): Promise<void>;
@@ -18,6 +18,9 @@ export interface ToolsContext {
   edit(command: string, args: Record<string, unknown>): Promise<unknown | null>;
   info(message: string): void;
   error(e: unknown): void;
+  /** Phone layout: "Save as" moves into this menu and desktop-only tools are left out. */
+  mobile: boolean;
+  saveAs(): void;
 }
 
 const PDF_FILTER = [{ name: "PDF", extensions: ["pdf"] }];
@@ -51,6 +54,14 @@ export function parsePages(text: string, count: number): number[] {
 
 function baseName(path: string) {
   return (path.split(/[\\/]/).pop() ?? path).replace(/\.pdf$/i, "");
+}
+
+/** Default path for a file derived from the open document: same folder, its name plus `suffix`. */
+function besideDoc(doc: { path: string; name: string }, suffix: string) {
+  const name = `${baseName(doc.name)}${suffix}`;
+  // Android URIs have no folder to suggest; the system picker starts in the last one used.
+  const folder = doc.path.startsWith("content://") ? undefined : folderOf(doc.path);
+  return folder ? `${folder}/${name}` : name;
 }
 
 function folderOf(path: string) {
@@ -193,7 +204,7 @@ async function extractPages() {
   if (!v) return;
   const pages = parsePages(v.pages, count);
   const path = await save({
-    defaultPath: `${folderOf(doc.path) ?? ""}/${baseName(doc.path)} (pág. ${v.pages.replace(/\s+/g, "")}).pdf`,
+    defaultPath: besideDoc(doc, ` (pág. ${v.pages.replace(/\s+/g, "")}).pdf`),
     filters: PDF_FILTER,
   });
   if (!path) return;
@@ -265,7 +276,7 @@ async function compressPdf() {
     () => {},
   );
   if (!v) return;
-  const path = await save({ defaultPath: `${folderOf(doc.path) ?? ""}/${baseName(doc.path)} (reducido).pdf`, filters: PDF_FILTER });
+  const path = await save({ defaultPath: besideDoc(doc, " (reducido).pdf"), filters: PDF_FILTER });
   if (!path) return;
   const done = await run("Reduciendo…", () =>
     invoke<{ before: number; after: number; images: number }>("compress_pdf", { path, level: v.level }),
@@ -295,7 +306,7 @@ async function protectPdf() {
     },
   );
   if (!v) return;
-  const path = await save({ defaultPath: `${folderOf(doc.path) ?? ""}/${baseName(doc.path)} (protegido).pdf`, filters: PDF_FILTER });
+  const path = await save({ defaultPath: besideDoc(doc, " (protegido).pdf"), filters: PDF_FILTER });
   if (!path) return;
   if (await run("Protegiendo…", () => invoke("protect_pdf", { path, password: v.password }))) {
     ctx.info(`Listo: ${baseName(path)}.pdf pide contraseña para abrirse.`);
@@ -305,7 +316,7 @@ async function protectPdf() {
 async function exportWord() {
   const doc = ctx.doc()!;
   const path = await save({
-    defaultPath: `${folderOf(doc.path) ?? ""}/${baseName(doc.path)}.docx`,
+    defaultPath: besideDoc(doc, ".docx"),
     filters: [{ name: "Word", extensions: ["docx"] }],
   });
   if (!path) return;
@@ -504,11 +515,20 @@ async function printDocument() {
 
 // ---------- Menu ----------
 
-const ITEMS: { label: string; run: () => unknown; needsDoc: boolean; shortcut?: string }[] = [
-  { label: "Imprimir…", run: printDocument, needsDoc: true, shortcut: "⌘P" },
+interface MenuItem {
+  label: string;
+  run: () => unknown;
+  needsDoc: boolean;
+  shortcut?: string;
+  /** Needs printing or choosing a folder, which phones don't offer. */
+  desktopOnly?: boolean;
+}
+
+const ITEMS: MenuItem[] = [
+  { label: "Imprimir…", run: printDocument, needsDoc: true, shortcut: "⌘P", desktopOnly: true },
   { label: "Extraer páginas…", run: extractPages, needsDoc: true },
-  { label: "Dividir PDF…", run: splitPdf, needsDoc: true },
-  { label: "Exportar como imágenes…", run: exportImages, needsDoc: true },
+  { label: "Dividir PDF…", run: splitPdf, needsDoc: true, desktopOnly: true },
+  { label: "Exportar como imágenes…", run: exportImages, needsDoc: true, desktopOnly: true },
   { label: "Exportar a Word…", run: exportWord, needsDoc: true },
   { label: "Reducir tamaño…", run: compressPdf, needsDoc: true },
   { label: "Proteger con contraseña…", run: protectPdf, needsDoc: true },
@@ -524,15 +544,18 @@ export function initTools(context: ToolsContext) {
     menu.hidden = true;
     button.setAttribute("aria-expanded", "false");
   };
+  const items = ctx.mobile
+    ? [{ label: "Guardar como…", run: ctx.saveAs, needsDoc: true }, ...ITEMS.filter((item) => !item.desktopOnly)]
+    : ITEMS;
   menu.replaceChildren(
-    ...ITEMS.map((item, i) => {
+    ...items.map((item, i) => {
       const b = document.createElement("button");
       b.type = "button";
       b.dataset.item = String(i);
       b.innerHTML = `<span></span><kbd></kbd>`;
       b.querySelector("span")!.textContent = item.label;
       b.querySelector("kbd")!.textContent = item.shortcut ?? "";
-      if (i === ITEMS.length - 1) b.classList.add("separated");
+      if (i === items.length - 1) b.classList.add("separated");
       b.addEventListener("click", () => {
         close();
         item.run();
@@ -545,7 +568,7 @@ export function initTools(context: ToolsContext) {
     if (!menu.hidden) return close();
     const has = ctx.doc() !== null;
     menu.querySelectorAll<HTMLButtonElement>("button").forEach((b) => {
-      b.disabled = ITEMS[Number(b.dataset.item)].needsDoc && !has;
+      b.disabled = items[Number(b.dataset.item)].needsDoc && !has;
     });
     const r = button.getBoundingClientRect();
     menu.style.left = `${r.left}px`;

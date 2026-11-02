@@ -1,4 +1,4 @@
-# Builds the Windows and macOS installers on GitHub's servers.
+# Builds the Windows, macOS and Android installers on GitHub's servers.
 # Runs manually (Actions tab → "Compilar instaladores" → Run workflow)
 # or when pushing a version tag, for example: git tag v0.1.0 && git push --tags
 # With a tag, it also publishes the installers on the Releases page, with fixed
@@ -98,6 +98,81 @@ jobs:
         run: |
           mkdir -p release
           cp ${{ matrix.release }} "release/${{ matrix.release_name }}"
+
+      - name: Publicar en Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          generate_release_notes: true
+
+  android:
+    name: android
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Descargar pdfium
+        run: ./scripts/fetch-pdfium-android.sh
+
+      - run: pnpm install --frozen-lockfile
+
+      # The key never lives in the repository: it comes from the secrets (see scripts/android-signing.md).
+      - name: Clave de firma
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Faltan los secretos ANDROID_KEYSTORE_BASE64 y ANDROID_KEYSTORE_PASSWORD (ver scripts/android-signing.md)"
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/pliego-release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/pliego-release.jks"
+            echo "password=$KEYSTORE_PASSWORD"
+            echo "keyAlias=pliego"
+          } > src-tauri/gen/android/keystore.properties
+
+      # APK for downloading from the website, AAB for Google Play.
+      - name: Compilar
+        run: |
+          export NDK_HOME="$ANDROID_NDK_LATEST_HOME"
+          pnpm tauri android build --target aarch64 --target armv7 --target x86_64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pliego-android
+          path: |
+            src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
+            src-tauri/gen/android/app/build/outputs/bundle/universalRelease/*.aab
+          if-no-files-found: error
+
+      - name: Preparar instalador para Releases
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          mkdir -p release
+          cp src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk release/Pliego-Android.apk
 
       - name: Publicar en Releases
         if: startsWith(github.ref, 'refs/tags/v')

@@ -3,6 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { ask, open, save } from "@tauri-apps/plugin-dialog";
+import { initMobile } from "./mobile";
 import { chooseSignature } from "./signature";
 import { askPassword, initTools, printDocument } from "./tools";
 
@@ -13,6 +14,8 @@ interface PageSize {
 
 interface DocInfo {
   path: string;
+  /** Name to show; on Android `path` can be an opaque content:// URI. */
+  name: string;
   pages: PageSize[];
   canUndo: boolean;
   canRedo: boolean;
@@ -92,7 +95,10 @@ type Tool =
   | "place";
 
 const THUMB_WIDTH = 140;
+/** Steps for the zoom buttons and shortcuts; pinching (touch) can choose any value in between. */
 const ZOOM_STEPS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
+const MIN_ZOOM = 0.25;
+const MAX_ZOOM = 4;
 const SVG_NS = "http://www.w3.org/2000/svg";
 /** Baseline position within a line of text (Helvetica with line-height 1.2). */
 const BASELINE_RATIO = 0.87;
@@ -102,7 +108,7 @@ const PDF_FILTER = [{ name: "PDF", extensions: ["pdf"] }];
 const state = {
   doc: null as DocInfo | null,
   current: 0,
-  zoomIndex: 2,
+  zoom: 1,
   dirty: false,
   tool: "select" as Tool,
   colors: { text: "#000000", highlight: "#ffd400", rect: "#e01e1e", pen: "#e01e1e", note: "#ffd400" } as Record<
@@ -217,18 +223,25 @@ function baseName(path: string) {
   return path.split(/[\\/]/).pop() ?? path;
 }
 
+const ANDROID = /Android/i.test(navigator.userAgent);
+
+/** Android hands files over as content:// URIs instead of paths. */
+function isUri(path: string) {
+  return path.startsWith("content://");
+}
+
 function isPdf(path: string) {
   return path.toLowerCase().endsWith(".pdf");
 }
 
 /** CSS px width the page is displayed at (the sizes already include rotation). */
 function displayWidth(index: number) {
-  return state.doc!.pages[index].width * ZOOM_STEPS[state.zoomIndex] * (96 / 72);
+  return state.doc!.pages[index].width * state.zoom * (96 / 72);
 }
 
 /** CSS pixels per PDF point on the current page. */
 function pxPerPt() {
-  return ZOOM_STEPS[state.zoomIndex] * (96 / 72);
+  return state.zoom * (96 / 72);
 }
 
 function relPoint(e: PointerEvent | MouseEvent, index = state.current): RelPoint {
@@ -259,6 +272,7 @@ function svg<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Record<string,
 function clearOverlay() {
   els.overlay.replaceChildren();
   selection = null;
+  syncTouchScroll();
   hoverBox = null;
   if (textSelection?.page === state.current) {
     textSelection.bar.remove();
@@ -332,7 +346,7 @@ function buildPages() {
         const index = Number((entry.target as HTMLElement).dataset.index);
         if (entry.isIntersecting) {
           nearby.add(index);
-          if (views[index].renderedZoom !== state.zoomIndex) renderPage(index).catch(showError);
+          if (views[index].renderedZoom !== state.zoom) renderPage(index).catch(showError);
         } else {
           nearby.delete(index);
         }
@@ -384,8 +398,9 @@ async function renderPage(index: number) {
   const view = views[index];
   if (!state.doc || !view) return;
   const seq = ++view.seq;
-  const zoom = state.zoomIndex;
-  const width = displayWidth(index) * window.devicePixelRatio;
+  const zoom = state.zoom;
+  // Capped: at high zoom on a dense screen the image would take hundreds of MB.
+  const width = Math.min(displayWidth(index) * window.devicePixelRatio, 4000);
   const url = batchPreviewing() ? await renderBatchPreview(index, width) : await renderPng(index, width);
   if (seq !== view.seq || views[index] !== view) {
     URL.revokeObjectURL(url);
@@ -393,8 +408,13 @@ async function renderPage(index: number) {
   }
   setImage(view.img, url);
   view.renderedZoom = zoom;
+  redrawOverlay(index);
+}
+
+/** Leaves only what's always drawn over the page (search results, fields…). */
+function redrawOverlay(index: number) {
   if (index === state.current) clearOverlay();
-  else view.overlay.replaceChildren();
+  else views[index].overlay.replaceChildren();
   drawBatchFields(index);
   drawSearchHits(index);
   drawFormFields(index).catch(() => {});
@@ -522,8 +542,8 @@ function updateUi() {
   els.del.disabled = !has || doc.pages.length <= 1 || state.busy;
   els.prev.disabled = !has || state.current === 0;
   els.next.disabled = !has || state.current >= doc.pages.length - 1;
-  els.zoomOut.disabled ||= state.zoomIndex === 0;
-  els.zoomIn.disabled ||= state.zoomIndex === ZOOM_STEPS.length - 1;
+  els.zoomOut.disabled ||= state.zoom <= ZOOM_STEPS[0];
+  els.zoomIn.disabled ||= state.zoom >= ZOOM_STEPS[ZOOM_STEPS.length - 1];
   els.batch.disabled = !has || state.busy || batch.active;
   // In batch mode the document is the template: it isn't edited, so the fields stay valid.
   if (batch.active) {
@@ -543,11 +563,11 @@ function updateUi() {
   }
 
   els.pageIndicator.textContent = has ? `${state.current + 1} / ${doc.pages.length}` : "–";
-  els.zoomIndicator.textContent = `${Math.round(ZOOM_STEPS[state.zoomIndex] * 100)}%`;
+  els.zoomIndicator.textContent = `${Math.round(state.zoom * 100)}%`;
 
-  const name = has ? baseName(doc.path) : "";
+  const name = has ? doc.name : "";
   els.fileName.textContent = name + (state.dirty ? " •" : "");
-  els.fileName.title = has ? doc.path : "";
+  els.fileName.title = has && !isUri(doc.path) ? doc.path : name;
   getCurrentWindow()
     .setTitle(has ? `${state.dirty ? "• " : ""}${name} — Pliego` : "Pliego")
     .catch(() => {});
@@ -584,10 +604,47 @@ function applyDoc(doc: DocInfo, opts: { dirty: boolean; page?: number }) {
   return renderCurrent().catch(showError);
 }
 
+// ---------- Android back button ----------
+
+/** Closes whatever is open on top. Returns false when there's nothing left and the app may leave. */
+async function handleBack(): Promise<boolean> {
+  const dialog = document.querySelector<HTMLDialogElement>("dialog[open]");
+  if (dialog) {
+    dialog.close();
+    return true;
+  }
+  if (!$("tools-menu").hidden) {
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    return true;
+  }
+  if (textInput) {
+    finishTextInput();
+    return true;
+  }
+  if (notePop) {
+    closeNote();
+    return true;
+  }
+  if (!els.searchBar.hidden) {
+    closeSearch();
+    return true;
+  }
+  if (selection) {
+    clearSelection();
+    return true;
+  }
+  return state.dirty && !(await confirmDiscard());
+}
+
 // ---------- Document actions ----------
 
 function confirmDiscard() {
-  return ask("Hay cambios sin guardar. ¿Descartarlos?", { title: "Pliego", kind: "warning" });
+  return ask("Hay cambios sin guardar. ¿Descartarlos?", {
+    title: "Pliego",
+    kind: "warning",
+    okLabel: "Descartar",
+    cancelLabel: "Cancelar",
+  });
 }
 
 async function openPath(path: string) {
@@ -598,6 +655,7 @@ async function openPath(path: string) {
     if (!doc) return;
     state.current = 0;
     formAnnounced = false;
+    if (ANDROID) state.zoom = fitWidthZoom(doc);
     await applyDoc(doc, { dirty: false });
     scrollToPage(0);
   } catch (e) {
@@ -621,7 +679,9 @@ async function openWithPassword(path: string) {
 
 async function openDocument() {
   if (state.dirty && !(await confirmDiscard())) return;
-  const path = await open({ multiple: false, filters: PDF_FILTER });
+  const path = ANDROID
+    ? await invoke<string | null>("pick_pdf").catch((e) => (showError(e), null))
+    : await open({ multiple: false, filters: PDF_FILTER });
   if (path) await openPath(path);
 }
 
@@ -629,7 +689,7 @@ async function saveDocument(saveAs: boolean) {
   if (!state.doc) return;
   let path: string | null = null;
   if (saveAs) {
-    path = await save({ defaultPath: state.doc.path, filters: PDF_FILTER });
+    path = await save({ defaultPath: isUri(state.doc.path) ? state.doc.name : state.doc.path, filters: PDF_FILTER });
     if (!path) return;
   }
   try {
@@ -637,6 +697,8 @@ async function saveDocument(saveAs: boolean) {
     state.dirty = false;
     updateUi();
   } catch (e) {
+    // Files opened from another app are often read-only: let the user pick where to save.
+    if (!saveAs && isUri(state.doc.path)) return saveDocument(true);
     showError(e);
   }
 }
@@ -707,20 +769,62 @@ function goTo(index: number, force = false) {
   scrollToPage(clamped);
 }
 
+/** Next zoom step up (`delta` > 0) or down from the current zoom. */
 function zoom(delta: number) {
-  const next = Math.max(0, Math.min(state.zoomIndex + delta, ZOOM_STEPS.length - 1));
-  if (!state.doc || next === state.zoomIndex) return;
+  const next = delta > 0 ? ZOOM_STEPS.find((z) => z > state.zoom + 0.001) : [...ZOOM_STEPS].reverse().find((z) => z < state.zoom - 0.001);
+  if (next !== undefined) setZoom(next);
+}
+
+/**
+ * Changes the zoom keeping still the point of the page under `anchor` (screen coordinates;
+ * by default the top center of the view). `to` moves that point elsewhere (pinching while dragging).
+ */
+function setZoom(value: number, anchor?: { x: number; y: number }, to = anchor) {
+  const next = Math.max(MIN_ZOOM, Math.min(value, MAX_ZOOM));
+  if (!state.doc) return;
+  const viewer = els.viewer.getBoundingClientRect();
+  const at = anchor ?? { x: viewer.left + viewer.width / 2, y: viewer.top };
+  const end = to ?? at;
+  if (Math.abs(next - state.zoom) < 0.001) {
+    // Same zoom: the fingers only dragged the pages.
+    els.viewer.scrollBy(at.x - end.x, at.y - end.y);
+    return;
+  }
   finishTextInput();
   clearSelection();
-  // Keeps the point of the current page that was at the top of the view.
-  const view = views[state.current];
-  const before = (els.viewer.scrollTop - view.wrap.offsetTop) / view.wrap.offsetHeight;
-  state.zoomIndex = next;
+  // Position of the anchor relative to the page under it, which stays valid after resizing.
+  const view = views[pageAt(at.y)];
+  const box = view.wrap.getBoundingClientRect();
+  const fx = (at.x - box.left) / box.width;
+  const fy = (at.y - box.top) / box.height;
+  state.zoom = next;
   views.forEach(sizeView);
   ignoreScrollUntil = performance.now() + 300;
-  els.viewer.scrollTop = view.wrap.offsetTop + before * view.wrap.offsetHeight;
+  const after = view.wrap.getBoundingClientRect();
+  els.viewer.scrollLeft += after.left + fx * after.width - end.x;
+  els.viewer.scrollTop += after.top + fy * after.height - end.y;
   updateUi();
   renderVisible().catch(showError);
+}
+
+/** Zoom at which the widest page fills the width of the view. */
+function fitWidthZoom(doc: DocInfo) {
+  const style = getComputedStyle(els.viewer);
+  const room = els.viewer.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+  const widest = Math.max(...doc.pages.map((p) => p.width)) * (96 / 72);
+  return Math.max(MIN_ZOOM, Math.min(room / widest, MAX_ZOOM));
+}
+
+/** Index of the page at screen height `y` (or the closest one). */
+function pageAt(y: number) {
+  let best = state.current;
+  let bestDistance = Infinity;
+  views.forEach((view, i) => {
+    const box = view.wrap.getBoundingClientRect();
+    const distance = y < box.top ? box.top - y : y > box.bottom ? y - box.bottom : 0;
+    if (distance < bestDistance) [best, bestDistance] = [i, distance];
+  });
+  return best;
 }
 
 // ---------- Reordering thumbnails ----------
@@ -1125,7 +1229,13 @@ function clearSelection() {
   selection?.box.remove();
   selection?.handle?.remove();
   selection = null;
+  syncTouchScroll();
   syncToolOptions();
+}
+
+/** On a touch screen a page with a selection doesn't scroll, so the selection can be dragged. */
+function syncTouchScroll() {
+  els.overlay.classList.toggle("has-selection", selection !== null);
 }
 
 function select(target: Hit) {
@@ -1135,6 +1245,7 @@ function select(target: Hit) {
   if (target.kind === "annotation" && target.hit.image) {
     selection.handle = resizeHandle(target.hit);
   }
+  syncTouchScroll();
   syncToolOptions();
 }
 
@@ -1200,11 +1311,13 @@ function pickAt(down: PointerEvent, tool: Tool) {
 
   // If there's nothing under the pointer, dragging selects text for copying.
   let resolved: Hit | null | undefined;
+  let cancelled = false;
   const band = svg("rect", { class: "band" });
   clearTextSelection();
   const hitPromise = hitAt(index, start, tool).catch((e) => (showError(e), null));
   hitPromise.then((target) => {
     resolved = target;
+    if (cancelled) return;
     clearSelection();
     if (!target || index !== state.current) return;
     select(target);
@@ -1263,6 +1376,7 @@ function pickAt(down: PointerEvent, tool: Tool) {
         else if (target.hit.text) editOwnText(target.hit.annotation, target.hit.text);
       }
     },
+    () => (cancelled = true),
   );
 }
 
@@ -1718,26 +1832,51 @@ function startPen(down: PointerEvent) {
 
 /** A drag is in progress over a page. */
 let dragging = false;
+/** Abandons the drag in progress without applying it (a second finger started a pinch). */
+let cancelDrag: (() => void) | null = null;
 
-function trackPointer(down: PointerEvent, onMove: (e: PointerEvent) => void, onUp: () => void) {
+function trackPointer(
+  down: PointerEvent,
+  onMove: (e: PointerEvent) => void,
+  onUp: () => void,
+  onCancel?: () => void,
+) {
+  cancelDrag?.();
   const overlay = els.overlay;
+  const index = state.current;
   overlay.setPointerCapture(down.pointerId);
   dragging = true;
-  const move = (e: PointerEvent) => onMove(e);
+  // Other fingers touching the page don't belong to this drag.
+  const own = (e: PointerEvent) => e.pointerId === down.pointerId;
+  const move = (e: PointerEvent) => own(e) && onMove(e);
+  const stop = () => {
+    dragging = false;
+    cancelDrag = null;
+    overlay.removeEventListener("pointermove", move);
+    overlay.removeEventListener("pointerup", up);
+    overlay.removeEventListener("pointercancel", cancel);
+  };
+  const up = (e: PointerEvent) => {
+    if (!own(e)) return;
+    stop();
+    onUp();
+  };
+  // Whatever the drag drew (shape, line, moved box) goes away with the redraw.
+  const cancel = () => {
+    stop();
+    onCancel?.();
+    if (index === state.current) redrawOverlay(index);
+  };
   overlay.addEventListener("pointermove", move);
-  overlay.addEventListener(
-    "pointerup",
-    () => {
-      dragging = false;
-      overlay.removeEventListener("pointermove", move);
-      onUp();
-    },
-    { once: true },
-  );
+  overlay.addEventListener("pointerup", up);
+  overlay.addEventListener("pointercancel", cancel);
+  cancelDrag = cancel;
 }
 
 function onPagePointerDown(e: PointerEvent, index: number) {
   if (e.button !== 0 || !state.doc || state.busy) return;
+  // Only the first finger acts on the page; a second one means zooming (see mobile.ts).
+  if (!e.isPrimary) return;
   // A click on another page first makes it current (commits a text being edited).
   if (index !== state.current) {
     if (textInput) {
@@ -2464,7 +2603,20 @@ window.addEventListener("DOMContentLoaded", () => {
     edit: (command, args) => edit(command, args),
     info: showInfo,
     error: showError,
+    mobile: ANDROID,
+    saveAs: () => saveDocument(true),
   });
+  if (ANDROID) {
+    initMobile({
+      zoom: () => state.zoom,
+      setZoom,
+      cancelDrag: () => cancelDrag?.(),
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      onBack: handleBack,
+      leave: () => invoke("leave_app").catch(showError),
+    });
+  }
   els.open.addEventListener("click", openDocument);
   els.openEmpty.addEventListener("click", openDocument);
   els.save.addEventListener("click", () => saveDocument(false));

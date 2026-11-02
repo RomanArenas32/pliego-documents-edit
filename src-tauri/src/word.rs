@@ -3,7 +3,6 @@
 //! rebuilt: it's for reusing or fixing the text, not for copying the layout.
 
 use std::io::{Cursor, Write};
-use std::path::Path;
 
 use pdfium_render::prelude::*;
 use tauri::State;
@@ -226,7 +225,7 @@ impl AppState {
         })?;
         let empty = pages.iter().filter(|p| p.is_empty()).count();
         let bytes = docx(&document_xml(&pages, size))?;
-        std::fs::write(Path::new(&path), bytes).map_err(|e| format!("no se pudo guardar {path}: {e}"))?;
+        crate::files::write(&path, &bytes)?;
         Ok(empty)
     }
 }

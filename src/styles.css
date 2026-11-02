@@ -964,6 +964,174 @@ body.working {
   cursor: progress;
 }
 
+/* ---------- Phone layout (Android, see mobile.ts) ---------- */
+
+.mobile {
+  font-size: 15px;
+}
+
+.mobile button,
+.mobile select {
+  min-height: 40px;
+  padding: 6px 12px;
+}
+
+.mobile button.icon {
+  min-width: 40px;
+  font-size: 18px;
+}
+
+.mobile .toolbar {
+  padding: 6px 8px;
+  gap: 0;
+}
+
+.mobile .toolbar .row {
+  gap: 6px;
+}
+
+/* Its content moved to the bottom bar and the page drawer. */
+.mobile .toolbar .row:nth-child(2),
+.mobile #btn-save-as,
+.mobile #btn-batch,
+.mobile .group:has(#btn-prev),
+.mobile .group:has(#btn-zoom-in) {
+  display: none;
+}
+
+.mobile .file-name {
+  order: 10;
+  flex-basis: 100%;
+  max-width: none;
+  margin: 0;
+  font-size: 12px;
+}
+
+.mobile .workspace {
+  position: relative;
+}
+
+.mobile .viewer {
+  padding: 12px 8px;
+  touch-action: pan-x pan-y;
+}
+
+.mobile .page-drawer {
+  position: absolute;
+  z-index: 15;
+  inset: 0 auto 0 0;
+  width: min(280px, 82vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  transform: translateX(-105%);
+  transition: transform 0.2s ease;
+}
+
+body.drawer-open .page-drawer {
+  transform: none;
+}
+
+.mobile .page-drawer .pages-group {
+  flex-wrap: wrap;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mobile .page-drawer .thumbnails {
+  width: auto;
+  flex: 1;
+  min-height: 0;
+  border-right: 0;
+  align-items: center;
+}
+
+/* In the fixed-height drawer they'd shrink and overlap instead of scrolling. */
+.mobile .page-drawer .thumb {
+  flex-shrink: 0;
+}
+
+.mobile .bottom-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 6px 8px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  scrollbar-width: none;
+}
+
+.mobile .bottom-bar > *,
+.mobile .bottom-bar button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.mobile #tool-options.floating {
+  justify-content: center;
+  gap: 16px;
+  padding: 6px 8px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+/* One finger scrolls; with a drawing tool it draws (two fingers still zoom, see mobile.ts). */
+.mobile .overlay {
+  touch-action: pan-x pan-y;
+}
+
+.mobile .pages[data-tool="highlight"] .overlay,
+.mobile .pages[data-tool="rect"] .overlay,
+.mobile .pages[data-tool="pen"] .overlay,
+.mobile .pages[data-tool="redact"] .overlay,
+.mobile .pages[data-tool="batch"] .overlay {
+  touch-action: none;
+}
+
+/* The selected object can be dragged with a finger instead of scrolling (see syncTouchScroll). */
+.mobile .overlay.has-selection {
+  touch-action: none;
+}
+
+.mobile .dialog,
+.mobile .dialog.wide,
+.mobile .dialog.narrow {
+  width: calc(100vw - 16px);
+  max-height: calc(100vh - 32px);
+}
+
+.mobile .menu {
+  left: 8px !important;
+  right: 8px;
+  top: auto !important;
+  bottom: 8px;
+}
+
+.mobile .menu button {
+  min-height: 44px;
+}
+
+.mobile .menu kbd {
+  display: none;
+}
+
+.mobile .toast {
+  bottom: 72px;
+}
+
+.mobile .search-bar {
+  left: 8px;
+  right: 8px;
+  top: 8px;
+}
+
+.mobile .search-bar input {
+  flex: 1;
+  min-width: 0;
+}
+
 /* ---------- Printing ---------- */
 
 #print-area {

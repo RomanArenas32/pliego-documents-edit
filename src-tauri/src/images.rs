@@ -54,7 +54,7 @@ impl Picture {
 
     fn load(source: ImageSource) -> Result<Self, String> {
         let bytes = match source {
-            ImageSource::File { path } => std::fs::read(&path).map_err(err)?,
+            ImageSource::File { path } => crate::files::read(&path)?,
             ImageSource::Data { bytes } => bytes,
         };
         if bytes.is_empty() {
